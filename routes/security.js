@@ -122,4 +122,47 @@ router.post('/personalOpen', function (req, res) {
     }
   });
 });
+
+/* 个人挂失 */
+router.post("/personLoss", (req, res) => {
+  console.log(req.body);
+  let sqlStatement = `select state from personSecurity where identityid = ${req.body.identityid} order by registerdate`
+  console.log(sqlStatement);
+  db(sqlStatement, [], (err, result) => {
+    if (err) {
+      console.log("数据库sql语句执行失败");
+    } else {
+      console.log("result", result);
+      if (result.length == 0 || result[0].state == 'cancel') {
+        res.status(400).end("您当前还未开户！");
+        return
+      }
+      if (result[0].state === 'frozen') {
+        // 确实存在记录
+        res.status(200).end("该账户已经挂失，请勿重复操作");
+        return;
+      } else if (result[0].state === 'normal') {
+        let frozenSql = `
+          update personSecurity
+          set state = 'frozen'
+          where identityid = ${req.body.identityid}
+        `;
+        db(frozenSql, [], (err, result) => {
+          if (err) {
+            res.status(502).end("服务器错误")
+            console.log("数据库错误", err.message);
+            return;
+          }
+          res.status(200).end("挂失成功")
+        });
+      }
+    }
+  })
+});
+
+/* 个人补办 */
+router.post("/personmakeup", (req, res) => {
+
+});
+
 module.exports = router;

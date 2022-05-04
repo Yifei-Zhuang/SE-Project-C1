@@ -37,15 +37,14 @@ response
   >{
   >  "msg": "插入失败"
   >}	
-  >
 
 2. 个人挂失
 
-- url : /security/ploss
+- url : /security/personLoss
 
 - method: post
 
-- description: 进行个人挂失
+- description: 进行个人挂失,（在后端就是将state改变为frozen）
 
 - request parameter
 > { 	
@@ -71,7 +70,7 @@ response
 
 3. 个人补办
 
- - url : /security/pmakeup
+ - url : /security/personmakeup
 
 - method: post
 
