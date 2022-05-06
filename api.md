@@ -74,7 +74,7 @@ response
 
 - method: post
 
-- description: 进行个人补办
+- description: 进行个人补办，执行逻辑在原身份证id对应的证券账户状态为冻结的情况下开一个新的户，将绑定到原先证券账户上的资金账户的绑定更改为新开的这个户。
 
 - request parameter
 > //和开户类似
