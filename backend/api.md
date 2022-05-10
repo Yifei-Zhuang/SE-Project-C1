@@ -248,3 +248,32 @@ response
   >{
   >  	"msg": "销户失败"
   >}	
+
+  8. 资金账户余额修改
+
+- url : /capital/ccalcel
+
+- method: post
+
+- description: 进行法人销户
+
+- request parameter
+> { 	
+>
+> ​	securityid: 1，
+> ​	corporateidentityid: '123456789012345678'
+> }
+
+response
+
+- success(statusCode 200)
+
+  >  {
+  >      "msg": "销户成功"
+  >  }	
+  
+- fail (code other than 200)
+
+  >{
+  >  	"msg": "销户失败"
+  >}	

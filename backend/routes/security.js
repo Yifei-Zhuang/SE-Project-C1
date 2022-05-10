@@ -133,7 +133,7 @@ const loseAccount = {
   // -3 表示已经销户
   // -4 表示已经挂失
   personLoseAccount: (identityid, callback) => {
-    let sql = `select state from personSecurity where identityid = \'${identityid}\' order by registerdate desc`
+    let sql = `select accountState from personSecurity where identityid = \'${identityid}\' order by registerdate desc`
     db(sql, [], (err, result) => {
       if (err) {
         console.log("[select error] - ", err.message);
@@ -245,21 +245,6 @@ const makeupAccount = {
     })
   }
 }
-/* 证券管理系统主页面  */
-router.get('/', function (req, res, next) {
-  res.render('security', { title: '证券管理系统' });
-});
-
-/* 个人证券管理系统  */
-router.get('/personal', function (req, res, next) {
-  res.render('personalSecurity', { title: '个人证券管理系统' });
-});
-
-/* 法人证券管理系统  */
-router.get('/corporate', function (req, res, next) {
-  res.render('corporateSecurity', { title: '法人证券管理系统' });
-});
-
 // 0表示成功
 // -1表示缺失identity参数
 // -2表示数据库错误
@@ -271,19 +256,19 @@ router.post('/personalOpen', function (req, res) {
   utils.getMaxSecurityId((maxID) => {
     openAccount.openPersonAccount(maxID, req, (statusCode) => {
       if (statusCode == -1) {
-        res.status(400).end("缺失identityid参数");
+        res.status(400).send("缺失identityid参数");
         return;
       } else if (statusCode == -2) {
-        res.status(503).end("数据库错误");
+        res.status(503).send("数据库错误");
         return;
       } else if (statusCode == -3) {
-        res.status(403).end("账户已经存在，请勿重复开户");
+        res.status(403).send("账户已经存在，请勿重复开户");
         return;
       } else if (statusCode == -4) {
-        res.status(403).end("账户已经冻结，请执行挂失操作");
+        res.status(403).send("账户已经冻结，请执行挂失操作");
         return;
       } else {
-        res.status(200).end(`开户成功,您的证券账户id为${utils.addPrefix0(10, (maxID + 1)).toString()}`);
+        res.status(200).send(`开户成功,您的证券账户id为${utils.addPrefix0(10, (maxID + 1)).toString()}`);
       }
     })
   })
@@ -362,6 +347,10 @@ router.post("/pcalcel", (req, res) => {
     res.status(400).end("缺少字段");
     return;
   }
+  // 1. 检查是否对应
+  // 2. 检查账户状态
+  //TODO 
+  // 3. 检查股票账户状态
   let checkSecurityIdAndIdentityIDSql = `select * from personSecurity where `
 })
 module.exports = router;
