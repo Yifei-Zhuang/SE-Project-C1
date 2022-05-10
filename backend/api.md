@@ -130,11 +130,9 @@ response
 
 - request parameter
 > { 	
->
-> ​	securityid: 1，
-> ​	corporateregisterid： '1',
+>​	corporateregisterid： '1',
 > ​	licenseid : '1', *-- 营业执照*
->
+> 
 > ​    corporateidentityid:'123456789012345678', *-- 法人身份证*
 >
 > ​    corporatename:'john', *-- 法人姓名*
