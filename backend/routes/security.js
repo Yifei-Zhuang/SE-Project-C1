@@ -209,7 +209,6 @@ const openAccount = {
   }
 }
 
-
 const loseAccount = {
 
   // 0  表示成功
@@ -710,7 +709,7 @@ router.post("/corporateMakeup", (req, res) => {
 });
 
 //个人销户
-router.post("/pcalcel", (req, res) => {
+router.post("/personCancelAccount", (req, res) => {
   // TODO 检查股票是否清空
   if (!("identityid" in req.body) || !("securityid" in req.body)) {
     res.status(400).end("缺少字段");
