@@ -15,7 +15,7 @@ create table capitalaccount (
     tradepassword varchar(50) not null, -- 交易密码
     cashpassword varchar(50) not null, -- 存款 取款密码
     frozenmoney decimal(10,2) default 0.0, -- 冻结的钱
-	accountstate enum('normal', 'forzen', 'cancel') default 'normal', -- 状态
+	accountstate enum('normal', 'frozen', 'cancel') default 'normal', -- 状态
     interest decimal(10,2) default 0.0, -- 未取利息
     foreign key(securityId) references security_type(securityid)
 );
@@ -37,7 +37,7 @@ create table personSecurity (
     workaddress varchar(50) not null, -- 工作地址
     phone varchar(30) not null, -- 电话
     agentidentityid varchar(20) default '', -- 委托人id， 可为空
-	accountstate enum('normal', 'forzen', 'cancel') default 'normal', -- 账号状态
+	accountstate enum('normal', 'frozen', 'cancel') default 'normal', -- 账号状态
     foreign key (securityid) references security_type(securityid)
 );
 
@@ -46,6 +46,7 @@ create table personSecurity (
 drop table if exists corporateSecurity;
 create table corporateSecurity (
 	securityid varchar(18) primary key, -- 证券账号id
+    registerdate timestamp not null default current_timestamp, -- 注册时间
     corporateregisterid varchar(50) not null, -- 法人注册id
     licenseid varchar(50) not null, -- 营业执照
     corporateidentityid varchar(18) not null, -- 法人身份证
@@ -56,15 +57,17 @@ create table corporateSecurity (
     authorizeridentityid varchar(18) not null, -- 授权者身份证号 
     authorizerphone varchar(30) not null, -- 授权者电话 
     authorizeraddress varchar(50) not null, -- 授权者地址 
-	accountstate enum('normal', 'forzen', 'cancel') default 'normal',  -- 账号状态
+	accountstate enum('normal', 'frozen', 'cancel') default 'normal',  -- 账号状态
     foreign key (securityid) references security_type(securityid) 
 );
+
 drop table if exists securityInfo;
 create table securityInfo(
     secuirtyid varchar(18) primary key,
     password varchar(20) not null,
     foreign key (secuirtyid) references security_type(securityid)
 );
+
 -- 证券管理人员相关信息信息表 
 drop table if exists securitiesadministrator;
 create table securitiesadministrator(
