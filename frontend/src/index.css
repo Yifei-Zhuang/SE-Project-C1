@@ -17,6 +17,120 @@ code {
   text-decoration: none;
 }
 
+dev.bgcolor {
+  display: block;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background-color: #f2e7cd;
+}
+
+.blocks {
+  display: block;
+  padding-bottom: 50px;
+  background-color:  #efe0bf;
+  border-radius: 20px;
+  border-color: #d8c2a8;
+  border-width: 5px;
+  text-align: center;
+  width: calc(35vw + 100px);
+  height: calc(75vh + 100px);
+  margin: 0 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.login {
+  display: block;
+  position: relative;
+  width: 55%;
+  height: 70%;
+  top: 2em;
+  left: 20%;
+  right: 20%;
+  padding: 20% 20px;
+}
+
+.func {
+  display: block;
+  position: relative;
+  width: 55%;
+  height: 70%;
+  top: 2em;
+  left: 20%;
+  right: 20%;
+  padding: 20px 20px;
+}
+
+.selections {
+  position: relative;
+  height: 50%;
+  top: 5%;
+  left: 30px;
+  text-align: left;
+}
+
+.selection {
+  display: block;
+  position: relative;
+  float: left;
+}
+
+.title {
+  background-color: #d8c2a8;
+  color: #fbfbfb;
+  text-align: left;
+  top: 0;
+  left: 0;
+  padding: 2.5em 1em 2em 0.5em;
+  width: 100%;
+  display: block;
+  position: relative;
+  height: 1em;
+  margin-bottom: 0;
+}
+
+ul.header {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 75%;
+  margin: 0 auto;
+  list-style-type: none;
+  padding: 0;
+  overflow: hidden;
+  background-color: #323848;
+  z-index: 5;
+}
+
+li.header-item-left {
+  float: left;
+}
+
+li.header-item-right {
+  float: right;
+}
+
+li a.header-link {
+  display: block;
+  color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  background-color: #323848;
+}
+
+li a.selected {
+  background-color: #21252f;
+}
+
+li a.header-link:hover {
+  background-color: #2b303e;
+}
+
 a {
   text-decoration: none;
   color: inherit;

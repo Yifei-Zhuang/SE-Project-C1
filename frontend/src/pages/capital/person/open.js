@@ -5,39 +5,31 @@ import { Input, Button } from "antd";
 const open = () => {
     return (
         <dev>
-            <Header type="s"/>
+            <Header type="c"/>
             <dev className="blocks">
-                <h1 className="title">证券账户个人开户<Button href="/security/person" shape="round" size="small">返回</Button> </h1>
+                <h1 className="title">资金账户开户<Button href="/capital/person" shape="round" size="small">返回</Button> </h1>
                 <dev className="func">
-                    <Input addonBefore="姓名"/>
+                    <Input addonBefore="本人身份证"/>
                     <dev>
                         <p></p>
                     </dev>
-                    <Input addonBefore="性别"/>
+                    <Input addonBefore="证券账户卡"/>
                     <dev>
                         <p></p>
                     </dev>
-                    <Input addonBefore="身份证号"/>
+                    <Input.Password addonBefore="证券账户密码"/>
                     <dev>
                         <p></p>
                     </dev>
-                    <Input addonBefore="家庭地址"/>
+                    <Input addonBefore="银行卡号"/>
                     <dev>
                         <p></p>
                     </dev>
-                    <Input addonBefore="职业"/>
+                    <Input addonBefore="开户行"/>
                     <dev>
                         <p></p>
                     </dev>
-                    <Input addonBefore="学历"/>
-                    <dev>
-                        <p></p>
-                    </dev>
-                    <Input addonBefore="工作单位"/>
-                    <dev>
-                        <p></p>
-                    </dev>
-                    <Input addonBefore="联系电话"/>
+                    <Input.Password addonBefore="银行卡密码"/>
                     <dev>
                         <p></p>
                     </dev>

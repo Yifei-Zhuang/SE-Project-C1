@@ -13,9 +13,9 @@ const selectBefore = (
 const makeup = () => {
     return (
         <dev>
-            <Header type="s"/>
+            <Header type="c"/>
             <dev className="blocks">
-                <h1 className="title">证券账户挂失并补办<Button href="/security/person" shape="round" size="small">返回</Button> </h1>
+                <h1 className="title">资金账户挂失并补办<Button href="/capital/person" shape="round" size="small">返回</Button> </h1>
                 <dev className="func">
                     <Input addonBefore={selectBefore} />
                     <dev>

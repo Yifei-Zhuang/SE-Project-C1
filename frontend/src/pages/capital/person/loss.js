@@ -1,3 +1,4 @@
+
 import React from "react";
 import {Header} from "../../../component";
 import { Input, Button, Select} from "antd";
@@ -10,29 +11,29 @@ const selectBefore = (
     </Select>
 );
 
-const makeup = () => {
+const Loss = () => {
     return (
         <dev>
             <Header type="s"/>
             <dev className="blocks">
-                <h1 className="title">证券账户挂失并补办<Button href="/security/person" shape="round" size="small">返回</Button> </h1>
+                <h1 className="title">资金账户修改密码<Button href="/security/person" shape="round" size="small">返回</Button> </h1>
                 <dev className="func">
-                    <Input addonBefore={selectBefore} />
+                    <Input addonBefore="资金账户卡号"/>
                     <dev>
                         <p></p>
                     </dev>
-                    <Input addonBefore="证券账户卡号"/>
+                    <Input.Password addonBefore="资金账户密码"/>
                     <dev>
                         <p></p>
                     </dev>
-                    <Input.Password addonBefore="证券账户密码"/>
+                    <Input.Password addonBefore="新资金账户密码"/>
                     <dev>
                         <p></p>
                     </dev>
-                    <Button>重新开户</Button>
+                    <Button>修改密码</Button>
                 </dev>
             </dev>
         </dev>
     )
 }
-export default makeup;
+export default Loss;
