@@ -2,7 +2,7 @@ let mysql = require('mysql')
 let config = {
     host: 'localhost',
     user: 'root',
-    password: 'Aa26158283', // 你的数据库密码
+    password: 'xx', // 你的数据库密码
     port: '3306',
     database: 'StockTrading'
 };
