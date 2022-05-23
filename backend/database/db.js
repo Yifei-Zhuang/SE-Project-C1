@@ -2,9 +2,9 @@ let mysql = require('mysql')
 let config = {
     host: 'localhost',
     user: 'root',
-    password: 'zju220037', // 你的数据库密码
+    password: 'Aa26158283', // 你的数据库密码
     port: '3306',
-    database: 'stocktrading'
+    database: 'StockTrading'
 };
 
 var pool = mysql.createPool(config);
