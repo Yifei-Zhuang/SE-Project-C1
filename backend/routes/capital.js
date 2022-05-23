@@ -3,6 +3,330 @@ var router = express.Router();
 
 var db = require('../database/db');
 
+const utils = {
+    addPrefix0: (number, totalsize = 18) => {
+      return number.toString().padStart(totalsize, 0);
+    },
+    getMaxCapitalAccountId: (callback) => {
+        let sql = `select max(capitalaccountid) as mid from capitalaccount`;
+        db(sql, [], (err, result) => {
+            if (err) {
+                console.log("[Get max capital account of all error] - ", err.message);
+                return;
+            }
+            callback(result[0].mid);
+        })
+    }
+  }
+
+const openAccount = {
+    // 开户
+    // maxID表示所有账户中的最大资金账户id
+    // 0表示成功
+    // -1表示缺失参数
+    // -2表示数据库错误
+    // -3表示其证券账户存在问题(冻结)
+    openCapitalAccount: (maxID, req, callback) => {
+        temp = req.body;
+        if (!("identityid" in temp) || !("securityId" in temp) || !("tradepassword" in temp) || !("cashpassword" in temp)) {
+            callback(-1);
+            return;
+        }
+  
+        let sql = `select * from personSecurity, corporateSecurity where securityId = \'${req.body.securityId}\'`
+        db(sql, [], (err, result)=> {
+            if (err) { /* 未找到该个人用户开设的证券账户 */
+            console.log("[Select identity from personSecurity or corporateSecurity error, you need to create a security account firstly.] - ", err.message);
+            callback(-2);
+            return;
+            } 
+            else if ((result.length > 0 && result[0].accountstate == 'frozen')) {
+            console.log("[Security account frozen error] - ", err.message)
+            callback(-3);
+            return;
+            }
+            else  if((result.length > 0 && result[0].accountstate == 'normal')) {
+                let newcapitalaccountid = utils.addPrefix0(parseInt(maxID) + 1);
+                let rollbackTypeSql = `delete from capitalaccount where capitalaccountid ='${newcapitalaccountid}'`
+                let insertSqlStatement1 = `insert into capitalaccount(capitalaccountid, identityid, securityId, tradepassword, cashpassword) values (
+                    \'${newcapitalaccountid}\',
+                    \'${req.body.identityid}\',
+                    \'${req.body.securityId}\',
+                    \'${req.body.tradepassword}\',
+                    \'${req.body.cashpassword}\',
+                    );`
+                db(insertSqlStatement1, [], (err, result) => {
+                    if (err) {
+                        console.log("[ insert into capitalaccount error ] - ", err.message);
+                        db(rollbackTypeSql, [], () => {
+                            callback(-2);
+                            return;
+                        })
+                    }
+                    //插入成功
+                    callback(0);
+                })
+            } 
+        })
+    }
+  }
+  
+const loseAccount = {
+    // 0  表示成功
+    // -1 表示无账户
+    // -2 表示数据库错误
+    // -3 表示已经销户
+    // -4 表示已经挂失
+    LoseCapitalAccount: (capitalaccountid, callback) => {
+        let sql = `select accountstate from capitalaccount where capitalaccountid = \'${capitalaccountid}\'`
+        db(sql, [], (err, result) => {
+            if (err) {
+                console.log("[select error] - ", err.message);
+                callback(-2);
+                return;
+            }
+            if (result.length > 0) {
+                if (result[0].accountstate == 'cancel') {
+                    callback(-3);
+                } else if (result[0].accountstate == 'frozen') {
+                    callback(-4);
+                } else {
+                    // 状态正常，执行挂失操作
+                    let sql1 = `update capitalaccount set accountstate = 'frozen'
+                    where capitalaccountid = \'${capitalaccountid}\' and accountstate = 'normal'`
+                    db(sql1, [], (err, result) => {
+                    if (err) {
+                        console.log("[update accountstate of capitalaccount error] - ");
+                        callback(-2);
+                        return;
+                    }
+                    else {
+                        //成功
+                        callback(0);
+                    }
+                    })
+                }
+            } else {
+                callback(-1);
+                return;
+            }
+        })
+    }
+}
+  
+const makeupAccount = {
+  
+    // 0 表示补办成功
+    // -1表示参数缺失
+    // -2表示数据库错误
+    // -3表示无账户信息，所以无法补办
+    // -4表示账户是normal，无法补办
+    // -5表示账户已经销户，无法补办
+    // -6表示账户信息核对错误，cashpassword不正确
+  
+    CapitalAccountMakeUp: (req, callback) => {
+        let temp = req.body;
+        if (!("capitalaccountid" in temp) || !("identityid" in temp) || !("securityId" in temp) ) {
+            callback(-1, null);
+            return;
+        }
+        let sql = `select accountstate from personSecurity where capitalaccountid = \'${req.body.capitalaccountid}\'`
+        db(sql, [], (err, result) => {
+            if (err) {
+                console.log("[Select accountstate from capitalaccount error] - ", err.message);
+                callback(-2, null);
+                return;
+            }
+            if (result.length > 0) {
+                if (result[0].accountstate == "normal") {
+                    callback(-4, null);
+                    return;
+                }
+                else if (result[0].accountstate == "cancel") {
+                    callback(-5, null);
+                    return;
+                }
+                else if (result[0].cashpassword != req.cashpassword){
+                    callback(-6, null);
+                }
+
+                //将原来的账户改为cancel
+                let sql = `update capitalaccount set accountstate = 'cancel' where capitalaccountid = \'${req.body.capitalaccountid}\' and accountstate = 'frozen'`
+                db(sql, [], (err, result) => {
+                if (err) {
+                    console.log("[update error in person makeup] - ", err.message);
+                    callback(-2, null);
+                    return;
+                }
+                // 成功
+                // 开新的户
+                // 开户
+                utils.getMaxCapitalAccountId((maxID) => {
+                    openAccount.openCapitalAccount(maxID, req, (statusCode) => {
+                        if (statusCode == -2) {/* 数据库错误 */
+                            callback(-2, null);
+                            return;
+                        } 
+                    })
+                })
+            })
+            } else {
+                callback(-3, null);
+                return;
+            }
+        })
+    }
+}
+  
+  
+const cancelAccount = {
+    // 0表示销户成功
+    // -1表示信息不匹配
+    // -2表示数据库错误
+    // -3表示更新账户状态失败
+    // -4表示之前已经销户了
+    // 提供身份证identityid和证券账户id即可
+    CancelCapitalAccount: (req, callback) => {
+        let sql = `select accountstate, balance from capitalaccount where capitalaccountid = \'${req.body.capitalaccountid}\'`
+        db(sql, [], (err, result) => {
+            if (err) {
+            console.log("[Select accountstate from personSecurity error] - ", err.message);
+            callback(-2, null);
+            return;
+            }
+            if (result.length > 0) {
+            if (result[0].accountstate == "cancel") {
+                callback(-4, null);
+                return;
+            }
+            if (result[0].identityid !== req.body.identityid || result[0].securityid !== req.body.securityid) {
+                callback(-1, null);
+                return;
+            }
+            //将原来的账户改为cancel
+            let sql1 = `update capitalaccount set accountstate = 'cancel' where capitalaccountid = \'${req.body.capitalaccountid}\' and accountstate in ('frozen','normal')`
+            db(sql1, [], (err, result) => {
+                if (err) {
+                console.log("[update error in capital account cancel] - ", err.message);
+                callback(-3, null);
+                return;
+                }
+                // 销户成功
+                callback(0, null);
+            })
+        } else {
+          callback(-3, null);
+          return;
+        }
+      })
+    }
+}
+  
+/* 登陆 */
+const capitalLogin = {
+    // 0 表示登陆成功
+    // -1表示缺失参数
+    // -2表示数据库错误
+    // -3表示登陆账号或者密码错误
+    Login:(req, callback)=> {
+      let temp = req.body;
+      if (!("capitalaccountid" in temp) || !("cashpassword" in temp)){
+        callback(-1, null);
+        return;
+      }
+      let sql = `select * from capitalaccount where capitalaccountid = \'${req.body.capitalaccountid}\' and cashpassword = \'${req.body.cashpassword}\'`
+      db(sql, [], (err, result) => {
+        if (err) {
+          console.log("[Select * from capitalaccount error] - ", err.message);
+          callback(-2, null);
+          return;
+        }
+        if (result.length == 0) {
+          console.log("[Input error / cash password error] - ", err.message);
+          callback(-3, null);
+          return;
+        }
+        else if(result.length > 0)
+        {
+          console.log("Login!");
+          callback(0, null);
+        }
+      })
+    }
+  }
+  
+  /* 登出 */
+const capitalLogout = {
+    Logout:(req, callback)=> {
+      console.log("log out!");
+      callback(0, null);
+    }
+}
+  
+/* 修改交易密码trade password */
+const tradepasswordChange = {
+    // 0 表示修改成功
+    // -1表示缺失参数
+    // -2表示数据库错误
+    changeTradePassword:(req, callback) => {
+      let temp = req.body;
+      if (!("capitalaccountid" in temp) || !("newpassword" in temp)){
+        callback(-1, null);
+        return;
+      }
+      let sql = `update capitalaccount set tradepassword = \'${req.body.newpassword}\' where capitalaccountid = \'${req.body.capitalaccountid}\'`
+      db(sql, [], (err, result) => {
+        if (err) {
+          console.log("[update capitalaccount error] - ", err.message);
+          callback(-2, null);
+          return;
+        }
+        if (result.length == 0) {
+          console.log("[capitalaccount error] - ", err.message);
+          callback(-3, null);
+          return;
+        }
+        else if(result.length > 0)
+        {
+          console.log("Successfully update!");
+          callback(0, null);
+        }
+      })
+    }
+}
+  
+/* 修改存取款密码cash password */
+const cashpasswordChange = {
+    // 0 表示修改成功
+    // -1表示缺失参数
+    // -2表示数据库错误
+    changeCashPassword:(req,callback)=>{
+      let temp = req.body;
+      if (!("capitalaccountid" in temp) || !("newpassword" in temp)){
+        callback(-1, null);
+        return;
+      }
+      let sql = `update capitalaccount set cashpassword = \'${req.body.newpassword}\' where capitalaccountid = \'${req.body.capitalaccountid}\'`
+      db(sql, [], (err, result) => {
+        if (err) {
+          console.log("[update capitalaccount error] - ", err.message);
+          callback(-2, null);
+          return;
+        }
+        if (result.length == 0) {
+          console.log("[capitalaccount error] - ", err.message);
+          callback(-3, null);
+          return;
+        }
+        else if(result.length > 0)
+        {
+          console.log("Successfully update!");
+          callback(0, null);
+        }
+      })
+    }
+}
+
 /**
  * 0：成功
  * -1：账户不存在
@@ -392,6 +716,161 @@ const revertTrade = {
         })
     }
 }
+
+/* 资金账户开户 */
+router.post('/OpenAccount', function (req, res) {
+    //  0表示成功
+    // -1表示缺失identity参数
+    // -2表示数据库错误
+    // -3表示证券账户冻结，禁止开资金账户
+    console.log(req.body);
+    utils.getMaxCapitalAccountId((maxID) => {
+      openAccount.openCapitalAccount(maxID, req, (statusCode) => {
+        console.log(req.body);
+        if (statusCode == -1) {
+          res.status(400).end("缺失capital account的参数");
+          return;
+        } else if (statusCode == -2) {
+          res.status(503).end("数据库错误");
+          return;
+        } else if (statusCode == -3) {
+          res.status(403).end("账户已经冻结，请执行挂失操作");
+          return;
+        } else {
+          let newcapitalaccountid = utils.addPrefix0(parseInt(maxID) + 1);
+          res.status(200).end(`开户成功,您的资金账户id为${newcapitalaccountid.toString()}`);
+        }
+        return;
+      })
+    })
+});
+  
+  /* 资金账户挂失 */
+router.post("/getInfo", function (req, res){
+    if(!("capitalaccountid" in req.body)){
+      res.status(400).end("缺失capitalaccount参数");
+      return;
+    }
+    // 0  表示成功
+    // -1 表示无账户
+    // -2 表示数据库错误
+    // -3 表示已经销户
+    // -4 表示已经挂失
+    loseAccount.LoseCapitalAccount(req.body.capitalaccountid, (statusCode) => {
+      if (statusCode == 0) {
+        res.status(200).end("挂失成功");
+        return;
+      } else if (statusCode == -1) {
+        res.status(403).end("您还未开户,无法执行挂失");
+        return;
+      } else if (statusCode == -2) {
+        res.status(503).end("数据库错误");
+        return;
+      } else if (statusCode == -3) {
+        res.status(403).end("您之前已经销户，请执行补办操作");
+        return;
+      } else {
+        res.status(403).end("请勿重复执行挂失操作");
+        return;
+      }
+    })
+});
+  
+/* 资金账户补办 */
+router.post("/makeup", function(req, res){
+    // 0 表示补办成功
+    // -1表示参数缺失
+    // -2表示数据库错误
+    // -3表示无账户信息，所以无法补办
+    // -4表示账户是normal，无法补办
+    // -5表示账户已经销户，无法补办
+    makeupAccount.CapitalAccountMakeUp(req, (statusCode, maxID) => {
+      if (statusCode == -1) {
+        res.status(400).end("缺失capitalaccountid 或 identityid参数");
+        return;
+      }
+      else if (statusCode == -2) {
+        res.status(503).end("数据库错误");
+        return;
+      }
+      else if (statusCode == -3) {
+        res.status(400).end("请先注册一个资金账户");
+        return;
+      }
+      else if (statusCode == -4) {
+        res.status(400).end("只能够对挂失的账户进行补办");
+        return;
+      }
+      else if (statusCode == -5) {
+        res.status(400).end("您已经执行销户操作，无法补办");
+        return;
+      } else {
+        // 成功
+        let newcapitalaccountid = utils.addPrefix0(parseInt(maxID) + 1);
+        res.status(200).end(`补办成功,您的证券账户id为${newcapitalaccountid.toString()}`);
+      }
+    })
+});
+  
+  
+/* 资金账户销户 */
+router.post("/cancel", function (req, res){
+    // TODO 检查资金账户是否还有现金
+    router.get("/getBalance",(req,res)=>{
+        if(res.balance >0)
+        return;
+    })
+    if (!("identityid" in req.body) || !("capitalaccountid" in req.body)) {
+        res.status(400).end("缺少字段");
+        return;
+    }
+    // 1. 检查是否对应
+    // 2. 检查账户状态
+    //TODO 
+    // 3. 检查资金账户是否有钱
+    cancelAccount.CancelCapitalAccount(req, (statusCode, result) => {
+      // 0表示销户成功
+      // -2表示数据库错误
+      // -3表示更新账户状态失败
+      // -4表示之前已经销户了
+      if (statusCode == 0) {
+        res.status(200).end("销户成功");
+      } else if (statusCode == -2 || statusCode == -3) {
+        res.status(503).end("数据库错误");
+      } else if (statusCode == -4) {
+        res.status(400).end("之前已经销户过了，请进行开户操作");
+      }
+    })
+});
+  
+// 0 表示登陆成功
+// -1表示缺失参数
+// -2表示数据库错误
+// -3表示登陆账号或者密码错误
+router.post("/login", function (req, res){
+    capitalLogin.Login(req, (statusCode, result) => {
+      if(statusCode == -2)
+        res.status(503).end("数据库连接错误");
+      else if(statusCode == -3)
+        res.status(400).end("登陆账号或密码输入错误");
+    })
+    capitalLogin.Login(req, (statusCode, result) => {
+    })
+})
+  
+router.post("/changeCashpassword", function(req, res){
+    cashpasswordChange.changeCashPassword(req, (statusCode, result) => {
+      if(statusCode == -2)
+        res.status(503).end("数据库连接错误");
+    })
+})
+router.post("/changeTradepassword", function(req, res) {
+    tradepasswordChange.changeTradePassword(req, (statusCode, result) => {
+      if(statusCode == -2)
+        res.status(503).end("数据库连接错误");
+    })
+})
+
 /**
  * 0：成功
  * -1：账户不存在
