@@ -204,6 +204,198 @@ const interestToBalance = {
     }
 }
 /**
+ * 0：资金转出成功
+ * -1：该账户不存在
+ * -2：数据库错误
+ * -3：可用资金不足
+ * -4：账户已冻结
+ * -5：账户已注销
+ */
+const moneyout = {
+    getMoneyOut : (req, callback) => {
+        let selectsql = `select * from capitalaccount where capitalaccountid = \'${req.body.capitalaccountid}\' `;
+        db(selectsql, [], (err, result) => {
+            if(err){
+                console.log("[Select while moneyout error] - ", err.message);
+                callback(-2);
+                return ;
+            }
+            else if(result.length == 0)
+            {
+                console.log("该账户不存在！");
+                callback(-1);
+                return ;
+            }
+            else if(result[0].accountstate == 'frozen'){
+                console.log("该账户已被冻结！");
+                callback(-4);
+            }
+            else if(result[0].accountstate == 'cancel'){
+                console.log("该账户已被注销！");
+                callback(-5);
+            }
+            else if(result[0].balance < req.body.amount){
+                console.log("可用资金不足，无法转为冻结资金！");
+                callback(-3);
+            }
+            else{
+                let updatesql =`update capitalaccount set balance = balance - ${req.body.amount}, frozenmoney = frozenmoney +${req.body.amount} where capitalaccountid = \'${req.body.capitalaccountid}\'`;
+                db(updatesql, [], (err, result) => {
+                    if(err){
+                        console.log("[Update while moneyout error] - ", err.message);
+                        callback(-2);
+                        return ;
+                    }
+                    else{
+                        callback(0);
+                        return ;
+                    }
+                })
+            }
+        })
+    }
+}
+/**
+ * 0：转账成功
+ * -1：sender余额不足
+ * -2：数据库错误
+ * -3：sender账户不存在
+ * -4：receiver账户不存在
+ * -5：sender被冻结
+ * -6：sender被注销
+ * -7：receiver被冻结
+ * -8：receiver被注销
+ */
+const moneyin = {
+    getMoneyIn : (req, callback) => {
+        let sendersel = `select * from capitalaccount where capitalaccountid = ${req.body.senderid}`;
+        let receiversel = `select * from capitalaccount where capitalaccountid = ${req.body.receiverid}`;
+        db(sendersel, [], (err, result) => {
+            if(err){
+                console.log("[select sender in moneyin error] - ", err.message);
+                callback(-2);
+                return ;
+            }
+            else if(result.length == 0){
+                console.log("sender账户不存在！");
+                callback(-3);
+                return ;
+            }
+            else if(result[0].accountstate == 'frozen'){
+                console.log("sender账户被冻结！");
+                callback(-5);
+                return;
+            }
+            else if(result[0].accountstate == 'cancel'){
+                console.log("sender账户被注销！");
+                callback(-6);
+                return ;
+            }
+            else if(result[0].balance < req.body.amount){
+                console.log("sender可用余额不足，无法转账！");
+                callback(-1);
+                return ;
+            }
+        })
+        db(receiversel, [], (err, result) => {
+            if(err){
+                console.log("[select receiver in moneyin error] - ", err.message);
+                callback(-2);
+                return ;
+            }
+            else if(result.length == 0){
+                console.log("receiver账户不存在！");
+                callback(-4);
+                return ;
+            }
+            else if(result[0].accountstate == 'frozen'){
+                console.log("receiver账户被冻结！");
+                callback(-7);
+                return;
+            }
+            else if(result[0].accountstate == 'cancel'){
+                console.log("receiver账户被注销！");
+                callback(-8);
+                return ;
+            }
+        })
+        reducesql = `update capitalaccount set balance = balance - ${req.body.amount} where capitalaccountid = \'${req.body.senderid}\'`;
+        addsql = `update capitalaccount set balance = balance + ${req.body.amount} where capitalaccountid = \'${req.body.receiverid}\'`;
+        db(reducesql, [], (err, callback) => {
+            if(err){
+                console.log("[error while reducing money in moneyin] - ", err.message);
+                callback(-2);
+                return ;
+            }
+            else{
+                db(addsql, [], (err, callback) => {
+                    if(err){
+                        console.log("[err while adding in moneyin] - ", err.message);
+                        callback(-2);
+                        return ;
+                    }
+                    else{
+                        callback(0);
+                        return ;
+                    }
+                })
+            }
+        })
+    }
+}
+/**
+ * 0：交易撤销成功
+ * -1：该账户不存在
+ * -2：数据库错误
+ * -3：冻结资金不足
+ * -4：账户已冻结
+ * -5：账户已注销
+ */
+const revertTrade = {
+    revertTradefunc : (req, callback) => {
+        let selectsql = `select * from capitalaccount where capitalaccountid = \'${req.body.accountid}\' `;
+        db(selectsql, [], (err, result) => {
+            if(err){
+                console.log("[Select while moneyout error] - ", err.message);
+                callback(-2);
+                return ;
+            }
+            else if(result.length == 0)
+            {
+                console.log("该账户不存在！");
+                callback(-1);
+                return ;
+            }
+            else if(result[0].accountstate == 'frozen'){
+                console.log("该账户已被冻结！");
+                callback(-4);
+            }
+            else if(result[0].accountstate == 'cancel'){
+                console.log("该账户已被注销！");
+                callback(-5);
+            }
+            else if(result[0].frozenmoney < req.body.amount){
+                console.log("剩余冻结资金不足，无法转为可用资金！");
+                callback(-3);
+            }
+            else{
+                let updatesql =`update capitalaccount set balance = balance + ${req.body.amount}, frozenmoney = frozenmoney - ${req.body.amount} where capitalaccountid = \'${req.body.accountid}\'`;
+                db(updatesql, [], (err, result) => {
+                    if(err){
+                        console.log("[Update while moneyout error] - ", err.message);
+                        callback(-2);
+                        return ;
+                    }
+                    else{
+                        callback(0);
+                        return ;
+                    }
+                })
+            }
+        })
+    }
+}
+/**
  * 接口那里accountid应该是transaction的id？。。
  * 0：逆转成功
  * -1：交易不存在
@@ -214,7 +406,7 @@ const interestToBalance = {
  * -6：逆转失败，所提供的钱不足以恢复该笔交易的取出量
  * -7：逆转失败，余额少于该笔交易的存款量
  */
-const revertTrade = {
+/*const revertTrade = {
     revertTradefunc : (req, callback) => {
         temp = req.body;
         let getTransactionSql = `select * from transactions where id = \'${req.body.accountid}\'`;
@@ -331,7 +523,7 @@ const revertTrade = {
             }
         })
     }
-}
+}*/
 /**
  * 0：成功
  * -1：账户不存在
@@ -340,16 +532,16 @@ const revertTrade = {
  * -4：账户已被冻结
  * -5：余额不足
  */
-router.post("/deposit",(req,res)=>{
+router.post("/withdraw",(req,res)=>{
     if (!("capitalaccountid" in req.body)) {
-        req.status(400).end("缺失capitalaccountid参数");
+        res.status(400).end("缺失capitalaccountid参数");
         return;
     }
     else if (!("amount" in req.body)) {
-        req.status(400).end("缺失amount参数");
+        res.status(400).end("缺失amount参数");
         return;
     }
-    changeBalance.userDeposit(req, (statusCode) =>{
+    changeBalance.userWithdraw(req, (statusCode) =>{
         if(statusCode == -1){
             res.status(400).end("该账户不存在！");
             return ;
@@ -385,7 +577,7 @@ router.post("/deposit",(req,res)=>{
  */
 router.post("/deposit",(req,res)=>{
     if (!("capitalaccountid" in req.body)) {
-        req.status(400).end("缺失capitalaccountid参数");
+        res.status(400).end("缺失capitalaccountid参数");
         return;
     }
     else if (!("amount" in req.body)) {
@@ -425,7 +617,7 @@ router.post("/deposit",(req,res)=>{
  */
 router.post('/interestToBalance',function(req, res){
     if (!("capitalaccountid" in req.body)) {
-        req.status(400).end("缺失capitalaccountid参数");
+        res.status(400).end("缺失capitalaccountid参数");
         return;
     }
     changeBalance.userDeposit(req, (statusCode) =>{
@@ -456,6 +648,153 @@ router.post('/interestToBalance',function(req, res){
     })
 })
 /**
+ * 0：资金转出成功
+ * -1：该账户不存在
+ * -2：数据库错误
+ * -3：可用资金不足
+ * -4：账户已冻结
+ * -5：账户已注销
+ */
+router.post('/moneyout', function(req, res){
+    if (!("capitalaccountid" in req.body)) {
+        res.status(400).end("缺失capitalaccountid参数");
+        return;
+    }
+    else if(!("amount" in req.body)){
+        res.status(400).end("缺失amount参数");
+        return ;
+    }
+    moneyout.getMoneyOut(req, (statusCode) => {
+        if(statusCode == -1){
+            res.status(403).end("该账户不存在！");
+            return ;
+        }
+        else if(statusCode == -2){
+            res.status(503).end("数据库错误！");
+            return ;
+        }
+        else if(statusCode == -3){
+            res.status(403).end("可用资金不足！");
+            return;
+        }
+        else if(statusCode == -4){
+            res.status(403).end("账户已冻结");
+            return;
+        }
+        else if(statusCode == -5){
+            res.status(403).end("账户已注销！");
+            return;
+        }
+        else if(statusCode == 0){
+            res.status(200).end("资金转出成功！");
+            return ;
+        }
+    })
+})
+/**
+ * 0：转账成功
+ * -1：sender余额不足
+ * -2：数据库错误
+ * -3：sender账户不存在
+ * -4：receiver账户不存在
+ * -5：sender被冻结
+ * -6：sender被注销
+ * -7：receiver被冻结
+ * -8：receiver被注销
+ */
+router.post('/moneyin', function(req, res){
+    if (!("senderid" in req.body)) {
+        res.status(400).end("缺失senderid参数");
+        return;
+    }
+    else if(!("receiverid" in req.body)) {
+        res.status(400).end("缺失receiverid参数");
+        return;
+    }
+    else if(!("amount" in req.body)){
+        res.status(400).end("缺失amount参数");
+        return ;
+    }
+    moneyin.getMoneyIn(req, (statusCode) => {
+        if(statusCode == -1){
+            res.status(403).end("sender余额不足！");
+            return ;
+        }
+        else if(statusCode == -2){
+            res.status(503).end("数据库错误！");
+            return ;
+        }
+        else if(statusCode == -3){
+            res.status(403).end("sender账户不存在！");
+            return ;
+        }
+        else if(statusCode == -4){
+            res.status(403).end("receiver账户不存在！");
+            return ;
+        }
+        else if(statusCode == -5){
+            res.status(403).end("sender已被冻结！");
+            return ;
+        }
+        else if(statusCode == -6){
+            res.status(403).end("sender已被销户！");
+            return ;
+        }
+        else if(statusCode == -7){
+            res.status(403).end("receiver已被冻结！");
+            return ;
+        }
+        else if(statusCode == -8){
+            res.status(403).end("receiver已被销户！");
+            return ;
+        }
+    })
+})
+/**
+ * 0：交易撤销成功
+ * -1：该账户不存在
+ * -2：数据库错误
+ * -3：冻结资金不足
+ * -4：账户已冻结
+ * -5：账户已注销
+ */
+ router.post('/revertTrade', function(req, res){
+    if (!("capitalaccountid" in req.body)) {
+        res.status(400).end("缺失accountid参数");
+        return;
+    }
+    else if(!("amount" in req.body)){
+        res.status(400).end("缺失amount参数");
+        return ;
+    }
+    revertTrade.revertTradefunc(req, (statusCode) => {
+        if(statusCode == -1){
+            res.status(403).end("该账户不存在！");
+            return ;
+        }
+        else if(statusCode == -2){
+            res.status(503).end("数据库错误！");
+            return ;
+        }
+        else if(statusCode == -3){
+            res.status(403).end("剩余冻结资金不足！");
+            return;
+        }
+        else if(statusCode == -4){
+            res.status(403).end("账户已冻结");
+            return;
+        }
+        else if(statusCode == -5){
+            res.status(403).end("账户已注销！");
+            return;
+        }
+        else if(statusCode == 0){
+            res.status(200).end("撤销交易成功！");
+            return ;
+        }
+    })
+})
+/**
  * 接口那里accountid应该是transaction的id？。。
  * 0：逆转成功
  * -1：交易不存在
@@ -466,6 +805,7 @@ router.post('/interestToBalance',function(req, res){
  * -6：逆转失败，所提供的钱不足以恢复该笔交易的取出量
  * -7：逆转失败，余额少于该笔交易的存款量
  */
+/*
 router.post('/revertTrade', function(req, res){
     revertTrade.revertTradefunc(req, (statusCode) =>{
         if(statusCode == -1){
@@ -501,7 +841,7 @@ router.post('/revertTrade', function(req, res){
             return ;
         }
     })
-})
+})*/
 router.get('/getBalance',function(req, res){
     //console.log(req.body.capitalaccountid);
     let sql = `select * from transactions where capitalaccountid = \'${req.body.capitalaccountid}\'`;
