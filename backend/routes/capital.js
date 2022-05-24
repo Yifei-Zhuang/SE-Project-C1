@@ -839,14 +839,25 @@ router.post("/makeup", function (req, res) {
 /* 资金账户销户 */
 router.post("/cancel", function (req, res) {
     // TODO 检查资金账户是否还有现金
-    router.get("/getBalance", (req, res) => {
-        if (res.balance > 0)
+    let sql = `select balance from capitalaccount where capitalaccountid = \'${req.body.capitalaccountid}\'`
+    db(sql, [], (err, result) => {
+        if (err) {
+            console.log("[Select while moneyout error] - ", err.message);
             return;
+        }
+        if (!("capitalaccountid" in req.body)) {
+            res.status(400).end("缺少字段");
+            return;
+        }
+        if(result[0].length == 0){
+            res.status(400).end("信息不匹配");
+            return;
+        }
+        if(result[0].balance > 0){
+            res.status(400).end("资金账户仍有余额, 请先转出余额再销户");
+            return;
+        }
     })
-    if (!("identityid" in req.body) || !("capitalaccountid" in req.body)) {
-        res.status(400).end("缺少字段");
-        return;
-    }
     // 1. 检查是否对应
     // 2. 检查账户状态
     //TODO 
