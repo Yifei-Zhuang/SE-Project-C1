@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -28,7 +28,9 @@ import CorporateCapitalDeposit from "./pages/capital/person/deposit";
 import CorporateCapitalWithdraw from "./pages/capital/person/withdraw";
 import CorporateCapitalQuery from "./pages/capital/person/query";
 
-import {Header, Login} from "./component";
+import { Header, Login } from "./component";
+import axios from "axios";
+import { Button, Input } from "antd";
 
 
 export default function App() {
@@ -76,7 +78,7 @@ export default function App() {
 
 function Home() {
   return (
-    <dev>    
+    <dev>
       <Header type="c" />
       <h2>Here is Home</h2>
     </dev>
@@ -104,12 +106,28 @@ function Administrator() {
 }
 
 function CapitalUsers() {
+  const { capitalaccountid, setCapitalaccountid } = useState('');
+  const { password, setPassword } = useState('');
+  const Login = () => {
+    console.log("Login now")
+    axios.post('http://47.99.194.140:3001/capital/login',
+      {
+        // withCredentials: true,
+        params: {
+          "capitalaccountid": toString(capitalaccountid),
+          "password": toString(password)
+        }
+      }
+    )
+  }
   return (
     <dev>
       <Header type="c" />
       <dev className="blocks">
         <h1 className="title">资金账户登录</h1>
-        <Login first="资金账号" second="交易密码" />
+        <Input addonBefore={"账户名"} value={capitalaccountid} onChange={(e) => { setCapitalaccountid(e.target.value) }} />
+        <Input addonBefore={"密码"} value={password} onChange={(e) => { setPassword(e.target.value) }} />
+        <Button onClick={Login}>登陆</Button>
       </dev>
     </dev>
   );

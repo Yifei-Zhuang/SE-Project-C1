@@ -1240,7 +1240,7 @@ router.post('/revertTrade', function (req, res) {
 })
 router.get('/getBalance', function (req, res) {
     //console.log(req.body.capitalaccountid);
-    let sql = `select * from capitalaccount where capitalaccountid = \'${req.body.capitalaccountid}\'`;
+    let sql = `select * from capitalaccount where capitalaccountid = \'${req.query.capitalaccountid}\'`;
     console.log(sql);
     //console.log(sql);
     db(sql, [], function (err, result) {
@@ -1261,7 +1261,7 @@ router.get('/getBalance', function (req, res) {
 });
 
 router.get('/getInfo', function (req, res) {
-    let sql = `select * from transactions where capitalaccountid = \'${req.body.capitalaccountid}\'`;
+    let sql = `select * from transactions where capitalaccountid = \'${req.query.capitalaccountid}\'`;
     db(sql, [], function (err, result) {
         if (err) {
             console.log("[Select Info error] - ", err.message);
