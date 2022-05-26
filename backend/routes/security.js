@@ -78,6 +78,9 @@ const openAccount = {
             console.log("in inserting");
             console.log("maxid is ", maxID);
             if (req.body.haveagent) {
+              if (maxID === null) {
+                maxID = 0;
+              }
               let newSecurityID = utils.addPrefix0(parseInt(maxID) + 1);
               let insertSqlStatement1 = `insert into personSecurity(securityid,name, gender, identityid, homeaddress, work, education, workaddress, phone,agentidentityid) values (
                 \'${newSecurityID}\',

@@ -37,7 +37,10 @@ const openAccount = {
             callback(-1);
             return;
         }
-        let sql = `select * from personSecurity, corporateSecurity where corporateSecurity.securityId = \'${req.body.securityId}\' or personSecurity.securityId = \'${req.body.securityId}\' order by personSecurity.registerdate, corporateSecurity.registerdate desc limit 1`
+        // let sql = `select * from personSecurity, corporateSecurity where corporateSecurity.securityId = \'${req.body.securityId}\' or personSecurity.securityId = \'${req.body.securityId}\' order by personSecurity.registerdate, corporateSecurity.registerdate desc limit 1`
+        let sql = `(select accountstate from personSecurity as p where  p.securityid = \'${req.body.securityId}\' order by p.registerdate desc limit 1) union  (
+            select accountstate from corporateSecurity as c where  c.securityid = \'${req.body.securityId}\'   order by c.registerdate desc limit 1)`
+
         db(sql, [], (err, result) => {
             if (err) { /* 未找到该个人用户开设的证券账户 */
                 console.log("[Select identity from personSecurity or corporateSecurity error, you need to create a security account firstly.] - ", err.message);
@@ -138,7 +141,7 @@ const makeupAccount = {
             callback(-1, null);
             return;
         }
-        let sql = `select accountstate from capitalAccount where capitalaccountid = \'${req.body.capitalaccountid}\'`
+        let sql = `select accountstate from capitalaccount where capitalaccountid = \'${req.body.capitalaccountid}\'`
         db(sql, [], (err, result) => {
             if (err) {
                 console.log("[Select accountstate from capitalaccount error] - ", err.message);
@@ -256,7 +259,6 @@ const capitalLogin = {
                 return;
             }
             if (result.length == 0) {
-                console.log("[Input error / cash password error] - ", err.message);
                 callback(-3, null);
                 return;
             }
@@ -303,6 +305,7 @@ const tradepasswordChange = {
                 console.log("Successfully update!");
                 callback(0, null);
             }
+            callback(0, null);
         })
     }
 }
@@ -334,6 +337,7 @@ const cashpasswordChange = {
                 console.log("Successfully update!");
                 callback(0, null);
             }
+            callback(0, null);
         })
     }
 }
@@ -654,14 +658,14 @@ const moneyin = {
         })
         reducesql = `update capitalaccount set balance = balance - ${req.body.amount} where capitalaccountid = \'${req.body.senderid}\'`;
         addsql = `update capitalaccount set balance = balance + ${req.body.amount} where capitalaccountid = \'${req.body.receiverid}\'`;
-        db(reducesql, [], (err, callback) => {
+        db(reducesql, [], (err, result) => {
             if (err) {
                 console.log("[error while reducing money in moneyin] - ", err.message);
                 callback(-2);
                 return;
             }
             else {
-                db(addsql, [], (err, callback) => {
+                db(addsql, [], (err, result) => {
                     if (err) {
                         console.log("[err while adding in moneyin] - ", err.message);
                         callback(-2);
@@ -849,11 +853,11 @@ router.post("/cancel", function (req, res) {
             res.status(400).end("缺少字段");
             return;
         }
-        if(result[0].length == 0){
+        if (result[0].length == 0) {
             res.status(400).end("信息不匹配");
             return;
         }
-        if(result[0].balance > 0){
+        if (result[0].balance > 0) {
             res.status(400).end("资金账户仍有余额, 请先转出余额再销户");
             return;
         }
@@ -891,19 +895,27 @@ router.post("/login", function (req, res) {
             res.status(400).end("登陆账号或密码输入错误");
     })
     capitalLogin.Login(req, (statusCode, result) => {
+        //TODO
+        res.status(200).end("登陆成功！");
+
     })
 })
 
 router.post("/changeCashpassword", function (req, res) {
     cashpasswordChange.changeCashPassword(req, (statusCode, result) => {
-        if (statusCode == -2)
+        if (statusCode == -2) {
             res.status(503).end("数据库连接错误");
+        }
+        res.status(200).end("修改成功！")
     })
 })
 router.post("/changeTradepassword", function (req, res) {
     tradepasswordChange.changeTradePassword(req, (statusCode, result) => {
-        if (statusCode == -2)
+        if (statusCode == -2) {
             res.status(503).end("数据库连接错误");
+            return;
+        }
+        res.status(200).end("修改成功！")
     })
 })
 
@@ -1131,6 +1143,7 @@ router.post('/moneyin', function (req, res) {
             res.status(403).end("receiver已被销户！");
             return;
         }
+        res.status(200).end("成功！")
     })
 })
 /**
