@@ -1,25 +1,12 @@
+drop database if exists StockTrading;
+create database StockTrading;
+
 use StockTrading;
 drop table if exists security_type;
 create table security_type (
 		securityid varchar(18) primary key, -- 证券账号id 
 	    accountType enum('person', 'corporate') not null-- 证券账号类型，个人/法人  
 );
-
-
-drop table if exists capitalaccount;
-create table capitalaccount (
-	capitalaccountid varchar(20) primary key, -- 账号id
-    identityid varchar(18) not null, -- 身份证
-    securityId varchar(18), -- 证券id
-    balance decimal(10,2) not null default 0.0, -- 余额
-    tradepassword varchar(50) not null, -- 交易密码
-    cashpassword varchar(50) not null, -- 存款 取款密码
-    frozenmoney decimal(10,2) default 0.0, -- 冻结的钱
-	accountstate enum('normal', 'frozen', 'cancel') default 'normal', -- 状态
-    interest decimal(10,2) default 0.0, -- 未取利息
-    foreign key(securityId) references security_type(securityid)
-);
-
 
 
 -- 在插入数据之前，请修改person_security表
@@ -37,8 +24,7 @@ create table personSecurity (
     workaddress varchar(50) not null, -- 工作地址
     phone varchar(30) not null, -- 电话
     agentidentityid varchar(20) default '', -- 委托人id， 可为空
-	accountstate enum('normal', 'frozen', 'cancel') default 'normal', -- 账号状态
-    foreign key (securityid) references security_type(securityid)
+	accountstate enum('normal', 'frozen', 'cancel') default 'normal' -- 账号状态
 );
 
 
@@ -57,15 +43,13 @@ create table corporateSecurity (
     authorizeridentityid varchar(18) not null, -- 授权者身份证号 
     authorizerphone varchar(30) not null, -- 授权者电话 
     authorizeraddress varchar(50) not null, -- 授权者地址 
-	accountstate enum('normal', 'frozen', 'cancel') default 'normal',  -- 账号状态
-    foreign key (securityid) references security_type(securityid) 
+	accountstate enum('normal', 'frozen', 'cancel') default 'normal'  -- 账号状态
 );
 
 drop table if exists securityInfo;
 create table securityInfo(
     secuirtyid varchar(18) primary key,
-    password varchar(20) not null,
-    foreign key (secuirtyid) references security_type(securityid)
+    password varchar(20) not null
 );
 
 -- 证券管理人员相关信息信息表 
@@ -73,6 +57,20 @@ drop table if exists securitiesadministrator;
 create table securitiesadministrator(
 	username varchar(20) primary key, -- 管理人员账号 
     password varchar(50) not null -- 管理人员密码  
+);
+
+
+drop table if exists capitalaccount;
+create table capitalaccount (
+	capitalaccountid varchar(20) primary key, -- 账号id
+    identityid varchar(18) not null, -- 身份证
+    securityId varchar(18), -- 证券id
+    balance decimal(10,2) not null default 0.0, -- 余额
+    tradepassword varchar(50) not null, -- 交易密码
+    cashpassword varchar(50) not null, -- 存款 取款密码
+    frozenmoney decimal(10,2) default 0.0, -- 冻结的钱
+	accountstate enum('normal', 'frozen', 'cancel') default 'normal', -- 状态
+    interest decimal(10,2) default 0.0, -- 未取利息
 );
 
 -- 资金账号收支信息
@@ -85,4 +83,33 @@ create table transactions(
     currency enum('RMB', 'USD', 'CAD', 'AUD', 'EUR', 'GBP', 'HKD', 'JPY') default 'RMB',   -- 币种
     description varchar(500) not null,   -- 交易描述信息
     foreign key(capitalaccountid)  references capitalaccount(capitalaccountid)
+);
+
+
+insert into personSecurity(securityid,name,gender,identityid,homeaddress,work,education,workaddress,phone)
+values(
+    '000000000000000000',
+    'ignore_me',
+    'male',
+    '123456789012345678',
+    'zju',
+    't',
+    'e',
+    'zju',
+    '1234'
+);
+
+insert into corporateSecurity(securityid, corporateregisterid, licenseid, corporateidentityid, corporatename, corporatephone, contactaddress,authorizername, authorizeridentityid, authorizerphone, authorizeraddress)
+values(
+    '100000000000000000',
+    '123',
+    '123',
+    '123456789012345678',
+    'ignore_me',
+    '123',
+    '123',
+    '123',
+    '123456789012345678',
+    '123',
+    '123'
 );

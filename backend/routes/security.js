@@ -14,7 +14,26 @@ const utils = {
         console.log("[Get max security of persons error] - ", err.message);
         return;
       }
-      callback(result[0].mid);
+      if (result[0].mid !== null)
+        callback(result[0].mid);
+      else {
+        callback(0);
+      }
+    })
+  },
+  getMaxCorporateSecurityId: (callback) => {
+    let sql = `select max(securityid) as mid from corporateSecurity`;
+    db(sql, [], (err, result) => {
+      if (err) {
+        console.log("[Get max security of corporates error] - ", err.message);
+        return;
+      }
+      if (result.length == 0 || result[0].mid == null) {
+        callback(0);
+      }
+      else {
+        callback(result[0].mid);
+      }
     })
   },
   getMaxSecurityId: (callback) => {
@@ -26,6 +45,18 @@ const utils = {
       }
       callback(result[0].mid);
     })
+  },
+  sumStrings: (a, b) => {
+    var res = '', c = 0;
+    a = a.split('');
+    b = b.split('');
+    while (a.length || b.length || c) {
+      c += ~~a.pop() + ~~b.pop();
+      res = c % 10 + res;//转成字符串
+      //console.log(res);
+      c = c > 9;//大于9进位
+    }
+    return res.replace(/^0+/, '');
   }
 }
 
@@ -40,49 +71,32 @@ const openAccount = {
   openPersonAccount: (maxID, req, callback) => {
     temp = req.body;
     if (!("name" in temp) || !("gender" in temp) || !("identityid" in temp) || !("homeaddress" in temp) || !("work" in temp) || !("education" in temp) || !("workaddress" in temp) || !("phone" in temp)) {
-      callback(-1);
+      callback(-1, null);
       return;
     }
     let sql = `select * from personSecurity where identityid = \'${req.body.identityid}\' order by registerdate desc`
     db(sql, [], (err, result) => {
       if (err) {
         console.log("[Select accountstate from personSecurity error] - ", err.message);
-        callback(-2);
+        callback(-2, null);
         return;
       } else {
         if ((result.length > 0 && result[0].accountstate != 'cancel')) {
-          console.log(result[0]);
-
+          // console.log(result[0]);
           if (result[0].accountstate == 'normal') {
             // 已经存在账户，无需开户 
-            console.log("req.body.identityid is ", req.body.identityid, " and result[0] is ", result[0]);
-            callback(-3);
+            // console.log("req.body.identityid is ", req.body.identityid, " and result[0] is ", result[0]);
+            callback(-3, null);
             return;
           } else if (result[0].accountstate == 'frozen') {
-            callback(-4);
+            callback(-4, null);
             return;
           }
         }
         else {
-          let newSecurityID = utils.addPrefix0(parseInt(maxID) + 1);
-          let insertTypeSql = `insert into security_type(securityid,accountType) values('${newSecurityID}','person')`
-          let rollbackTypeSql = `delete from security_type where securityid ='${newSecurityID}'`
-          db(insertTypeSql, [], (err, result) => {
-            if (err) {
-              console.log("[Insert into security_type error] - ", err.message);
-              db(rollbackTypeSql, [], () => {
-                callback(-2);
-                return;
-              })
-            }
-            console.log("in inserting");
-            console.log("maxid is ", maxID);
-            if (req.body.haveagent) {
-              if (maxID === null) {
-                maxID = 0;
-              }
-              let newSecurityID = utils.addPrefix0(parseInt(maxID) + 1);
-              let insertSqlStatement1 = `insert into personSecurity(securityid,name, gender, identityid, homeaddress, work, education, workaddress, phone,agentidentityid) values (
+          let newSecurityID = utils.addPrefix0(utils.sumStrings(maxID.toString(), '1'));
+          if (req.body.haveagent) {
+            let insertSqlStatement1 = `insert into personSecurity(securityid,name, gender, identityid, homeaddress, work, education, workaddress, phone,agentidentityid) values (
                 \'${newSecurityID}\',
                 \'${req.body.name}\',
                 \'${req.body.gender}\',
@@ -94,20 +108,17 @@ const openAccount = {
                 \'${req.body.phone}\',
                 \'${req.body.agentidentityid}\'
                );`
-              db(insertSqlStatement1, [], (err, result) => {
-                if (err) {
-                  console.log("[ insert into personSecurity error ] - ", err.message);
-                  db(rollbackTypeSql, [], () => {
-                    callback(-2);
-                    return;
-                  })
-                }
-                //插入成功
-                callback(0);
-              })
-            } else {
-              // 无代理
-              let insertSqlStatement1 = `insert into personSecurity(securityid,name, gender, identityid, homeaddress, work, education, workaddress, phone) values (
+            db(insertSqlStatement1, [], (err, result) => {
+              if (err) {
+                console.log("[ insert into personSecurity error ] - ", err.message);
+                callback(-2);
+              }
+              //插入成功
+              callback(0, newSecurityID);
+            })
+          } else {
+            // 无代理
+            let insertSqlStatement1 = `insert into personSecurity(securityid,name, gender, identityid, homeaddress, work, education, workaddress, phone) values (
                 \'${newSecurityID}\',
                 \'${req.body.name}\',
                 \'${req.body.gender}\',
@@ -118,19 +129,16 @@ const openAccount = {
                 \'${req.body.workaddress}\',
                 \'${req.body.phone}\'
                  );`
-              db(insertSqlStatement1, [], (err, result) => {
-                if (err) {
-                  console.log("[ insert into personSecurity error ] - ", err.message);
-                  db(rollbackTypeSql, [], () => {
-                    callback(-2);
-                    return;
-                  })
-                }
-                // 插入成功
-                callback(0);
-              })
-            }
-          })
+            db(insertSqlStatement1, [], (err, result) => {
+              if (err) {
+                console.log("[ insert into personSecurity error ] - ", err.message);
+                callback(-2, null);
+                return;
+              }
+              // 插入成功
+              callback(0, newSecurityID);
+            })
+          }
         }
       }
     })
@@ -150,37 +158,29 @@ const openAccount = {
     db(sql, [], (err, result) => {
       if (err) {
         console.log("[Select accountstate from corporateSecurity error] - ", err.message);
-        callback(-2);
+        callback(-2, null);
         return;
       } else {
         if ((result.length > 0 && result[0].accountstate != 'cancel')) {
-          console.log(result[0]);
+          // console.log(result[0]);
           if (result[0].accountstate == 'normal') {
             // 已经存在账户，无需开户 
-            console.log("req.body.corporateregisterid is ", req.body.corporateregisterid, " and result[0] is ", result[0]);
-            callback(-3);
+            // console.log("req.body.corporateregisterid is ", req.body.corporateregisterid, " and result[0] is ", result[0]);
+            callback(-3, null);
             return;
           } else if (result[0].accountstate == 'frozen') {
-            callback(-4);
+            callback(-4, null);
             return;
           }
         }
         else {
-          let newSecurityID = utils.addPrefix0(parseInt(maxID) + 1);
-          console.log("maxId is ", maxID, " and newSecurityID is ", newSecurityID);
-          let insertTypeSql = `insert into security_type(securityid,accountType) values('${newSecurityID}','corporate')`
-          let rollbackTypeSql = `delete from security_type where securityid ='${newSecurityID}'`
-          db(insertTypeSql, [], (err, result) => {
-            if (err) {
-              console.log("[Insert into security_type error] - ", err.message);
-              db(rollbackTypeSql, [], () => {
-                callback(-2);
-                return;
-              })
-            }
-            console.log("in inserting");
-            console.log("maxid is ", maxID);
-            let insertSqlStatement1 = `insert into corporateSecurity(securityid,corporateregisterid,licenseid,corporateidentityid,corporatename,corporatephone,contactaddress,authorizername,authorizeridentityid,authorizerphone,authorizeraddress) values (
+          let newSecurityID = utils.addPrefix0((utils.sumStrings(maxID.toString(), '1')), 17);
+          if (newSecurityID.length == 17) {
+            newSecurityID = '1' + newSecurityID;
+          }
+          // console.log("in inserting");
+          // console.log("maxid is ", maxID);
+          let insertSqlStatement1 = `insert into corporateSecurity(securityid,corporateregisterid,licenseid,corporateidentityid,corporatename,corporatephone,contactaddress,authorizername,authorizeridentityid,authorizerphone,authorizeraddress) values (
                 \'${newSecurityID}\',
                 \'${req.body.corporateregisterid}\',
                 \'${req.body.licenseid}\',
@@ -193,22 +193,19 @@ const openAccount = {
                 \'${req.body.authorizerphone}\',
                 \'${req.body.authorizeraddress}\'
                );`
-            db(insertSqlStatement1, [], (err, result) => {
-              if (err) {
-                console.log("[ insert into corporateSecurity error ] - ", err.message);
-                console.log(`SQL IS ${insertSqlStatement1}`)
-                db(rollbackTypeSql, [], () => {
-                  callback(-2);
-                  return;
-                })
-              }
-              //插入成功
-              callback(0);
-            })
-          })
+          db(insertSqlStatement1, [], (err, result) => {
+            if (err) {
+              console.log("[ insert into corporateSecurity error ] - ", err.message);
+              // console.log(`SQL IS ${insertSqlStatement1}`)
+              callback(-2);
+              return;
+            }
+            //插入成功
+            callback(0, newSecurityID);
+          });
         }
       }
-    })
+    });
   }
 }
 
@@ -339,7 +336,7 @@ const makeupAccount = {
           // 成功
           // 开新的户
           // 开户
-          utils.getMaxSecurityId((maxID) => {
+          utils.getMaxPersonSecurityId((maxID) => {
             openAccount.openPersonAccount(maxID, req, (statusCode) => {
               if (statusCode == -2) {
                 callback(-2, null);
@@ -349,7 +346,7 @@ const makeupAccount = {
                 return;
               } else {
                 // 更改原有资金账户的关联
-                let newSecurityID = utils.addPrefix0(parseInt(maxID) + 1);
+                let newSecurityID = utils.addPrefix0(utils.sumStrings(maxID, '1'));
                 let sql2 = `update capitalaccount set securityid = \'${newSecurityID}\' where securityid = \'${originalSid}\'`
                 db(sql2, [], (err, result) => {
                   if (err) {
@@ -357,7 +354,7 @@ const makeupAccount = {
                     callback(-2, null);
                     return;
                   }
-                  callback(0, maxID);
+                  callback(0, newSecurityID);
                 })
               }
             })
@@ -392,7 +389,7 @@ const makeupAccount = {
           callback(-5, null);
           return;
         }
-        console.log(result);
+        // console.log(result);
         originalSid = result[0].securityid;
         //将原来的账户改为cancel
         let sql1 = `update corporateSecurity set accountstate = 'cancel' where corporateidentityid = \'${req.body.corporateidentityid}\' and accountstate = 'frozen'`
@@ -405,7 +402,7 @@ const makeupAccount = {
           // 成功
           // 开新的户
           // 开户
-          utils.getMaxSecurityId((maxID) => {
+          utils.getMaxCorporateSecurityId((maxID) => {
             openAccount.openCorporaetaccount(maxID, req, (statusCode) => {
               if (statusCode == -2) {
                 callback(-2, null);
@@ -415,7 +412,10 @@ const makeupAccount = {
                 return;
               } else {
                 // 更改原有资金账户的关联
-                let newSecurityID = utils.addPrefix0(parseInt(maxID) + 1);
+                let newSecurityID = utils.addPrefix0((utils.sumStrings(maxID.toString(), '1')), 17);
+                if (newSecurityID.length == 17) {
+                  newSecurityID = '1' + newSecurityID;
+                }
                 let sql2 = `update capitalaccount set securityid = \'${newSecurityID}\' where securityid = \'${originalSid}\'`
                 // console.log("debug: update sql is ", sql2);
                 db(sql2, [], (err, result) => {
@@ -424,7 +424,7 @@ const makeupAccount = {
                     callback(-2, null);
                     return;
                   }
-                  callback(0, maxID);
+                  callback(0, newSecurityID);
                 })
               }
             })
@@ -521,10 +521,8 @@ const cancelAccount = {
 // -4表示账户冻结，禁止开户
 /* 个人开户 */
 router.post('/personalOpen', function (req, res) {
-  console.log(req.body);
-  utils.getMaxSecurityId((maxID) => {
-    openAccount.openPersonAccount(maxID, req, (statusCode) => {
-      console.log(req.body);
+  utils.getMaxPersonSecurityId((maxID) => {
+    openAccount.openPersonAccount(maxID, req, (statusCode, result) => {
       if (statusCode == -1) {
         res.status(400).end("缺失identityid参数");
         return;
@@ -538,8 +536,7 @@ router.post('/personalOpen', function (req, res) {
         res.status(403).end("账户已经冻结，请执行挂失操作");
         return;
       } else {
-        let newSecurityID = utils.addPrefix0(parseInt(maxID) + 1);
-        res.status(200).end(`开户成功,您的证券账户id为${newSecurityID.toString()}`);
+        res.status(200).end(`开户成功,您的证券账户id为${result}`);
       }
       return;
     })
@@ -552,9 +549,9 @@ router.post('/personalOpen', function (req, res) {
 // -3表示账户之前已经存在，无需开户
 // -4表示账户已经被冻结，不能开户
 router.post('/corporateOpen', (req, res) => {
-  console.log(req.body);
-  utils.getMaxSecurityId((maxID) => {
-    openAccount.openCorporaetaccount(maxID, req, (statusCode) => {
+  // console.log(req.body);
+  utils.getMaxCorporateSecurityId((maxID) => {
+    openAccount.openCorporaetaccount(maxID, req, (statusCode, newSecurityID) => {
       if (statusCode == -1) {
         res.status(400).end("缺失参数");
         return;
@@ -568,8 +565,7 @@ router.post('/corporateOpen', (req, res) => {
         res.status(403).end("账户已经冻结，请执行挂失操作");
         return;
       } else {
-        let newSecurityID = utils.addPrefix0(parseInt(maxID) + 1);
-        res.status(200).end(`开户成功,您的证券账户id为${newSecurityID.toString()}`);
+        res.status(200).end(`开户成功,您的证券账户id为${newSecurityID}`);
       }
       return;
     })
@@ -612,7 +608,7 @@ router.post("/corporateLoss", (req, res) => {
     req.status(400).end("缺失corporateregisterid参数");
     return;
   }
-  console.log(req.body)
+  // console.log(req.body)
   // 0  表示成功
   // -1 表示无账户
   // -2 表示数据库错误
@@ -647,7 +643,7 @@ router.post("/corporateLoss", (req, res) => {
 // -4表示账户是normal，无法补办
 // -5表示账户已经销户，无法补办
 router.post("/personmakeup", (req, res) => {
-  makeupAccount.personMakeUp(req, (statusCode, maxID) => {
+  makeupAccount.personMakeUp(req, (statusCode, newSecurityID) => {
     if (statusCode == -1) {
       res.status(400).end("缺失identityid参数");
       return;
@@ -669,8 +665,7 @@ router.post("/personmakeup", (req, res) => {
       return;
     } else {
       // 成功
-      let newSecurityID = utils.addPrefix0(parseInt(maxID) + 1);
-      res.status(200).end(`补办成功,您的证券账户id为${newSecurityID.toString()}`);
+      res.status(200).end(`补办成功,您的证券账户id为${newSecurityID}`);
     }
   })
 });
@@ -682,8 +677,7 @@ router.post("/personmakeup", (req, res) => {
 // -4表示账户是normal，无法补办
 // -5表示账户已经销户，无法补办
 router.post("/corporateMakeup", (req, res) => {
-  console.log(req.body);
-  makeupAccount.corporateMakeUpAccount(req, (statusCode, maxID) => {
+  makeupAccount.corporateMakeUpAccount(req, (statusCode, newSecurityID) => {
     if (statusCode == -1) {
       res.status(400).end("缺失法人注册id参数");
       return;
@@ -705,8 +699,7 @@ router.post("/corporateMakeup", (req, res) => {
       return;
     } else {
       // 成功
-      let newSecurityID = utils.addPrefix0(parseInt(maxID) + 1);
-      res.status(200).end(`补办成功,您的证券账户id为${newSecurityID.toString()}`);
+      res.status(200).end(`补办成功,您的证券账户id为${newSecurityID}`);
     }
   })
 });
@@ -729,7 +722,8 @@ router.post("/personCancelAccount", (req, res) => {
     // -4表示之前已经销户了
     if (statusCode == 0) {
       res.status(200).end("销户成功");
-
+    } else if (statusCode == -1) {
+      res.status(503).end("信息不匹配");
     } else if (statusCode == -2 || statusCode == -3) {
       res.status(503).end("服务器内部错误");
     } else if (statusCode == -4) {
