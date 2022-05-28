@@ -473,7 +473,7 @@ const cancelAccount = {
           callback(0, null);
         })
       } else {
-        callback(-3, null);
+        callback(-5, null);
         return;
       }
     })
@@ -507,13 +507,37 @@ const cancelAccount = {
           callback(0, null);
         })
       } else {
-        callback(-3, null);
+        callback(-5, null);
         return;
       }
     })
   }
 }
 
+const login = {
+  Login: (req, callback) => {
+    let temp = req.body;
+    if (!("securityid" in temp) || !("password" in temp)) {
+      callback(-1, null);
+      return;
+    }
+    let sql = `select * from securityInfo where securityid = \'${req.body.securityid}\' and password = \'${req.body.password}\'`
+    db(sql, [], (err, result) => {
+      if (err) {
+        console.log("[Select * from securityInfo error] - ", err.message);
+        callback(-2, null);
+        return;
+      }
+      if (result.length == 0) {
+        callback(-3, null);
+        return;
+      }
+      else if (result.length > 0) {
+        callback(0, null);
+      }
+    })
+  }
+}
 // 0表示成功
 // -1表示缺失identity参数
 // -2表示数据库错误
@@ -521,6 +545,10 @@ const cancelAccount = {
 // -4表示账户冻结，禁止开户
 /* 个人开户 */
 router.post('/personalOpen', function (req, res) {
+  if (!req.session.security_is_admin) {
+    res.status(403).end("非法访问");
+    return;
+  }
   utils.getMaxPersonSecurityId((maxID) => {
     openAccount.openPersonAccount(maxID, req, (statusCode, result) => {
       if (statusCode == -1) {
@@ -549,6 +577,10 @@ router.post('/personalOpen', function (req, res) {
 // -3表示账户之前已经存在，无需开户
 // -4表示账户已经被冻结，不能开户
 router.post('/corporateOpen', (req, res) => {
+  if (!req.session.security_is_admin) {
+    res.status(403).end("非法访问");
+    return;
+  }
   // console.log(req.body);
   utils.getMaxCorporateSecurityId((maxID) => {
     openAccount.openCorporaetaccount(maxID, req, (statusCode, newSecurityID) => {
@@ -573,6 +605,10 @@ router.post('/corporateOpen', (req, res) => {
 })
 /* 个人挂失 */
 router.post("/personLoss", (req, res) => {
+  if (!req.session.security_is_admin) {
+    res.status(403).end("非法访问");
+    return;
+  }
   if (!("identityid" in req.body)) {
     req.status(400).end("缺失identity参数");
     return;
@@ -604,6 +640,10 @@ router.post("/personLoss", (req, res) => {
 
 /* 法人挂失 */
 router.post("/corporateLoss", (req, res) => {
+  if (!req.session.security_is_admin) {
+    res.status(403).end("非法访问");
+    return;
+  }
   if (!("corporateregisterid" in req.body)) {
     req.status(400).end("缺失corporateregisterid参数");
     return;
@@ -643,6 +683,10 @@ router.post("/corporateLoss", (req, res) => {
 // -4表示账户是normal，无法补办
 // -5表示账户已经销户，无法补办
 router.post("/personmakeup", (req, res) => {
+  if (!req.session.security_is_admin) {
+    res.status(403).end("非法访问");
+    return;
+  }
   makeupAccount.personMakeUp(req, (statusCode, newSecurityID) => {
     if (statusCode == -1) {
       res.status(400).end("缺失identityid参数");
@@ -677,6 +721,10 @@ router.post("/personmakeup", (req, res) => {
 // -4表示账户是normal，无法补办
 // -5表示账户已经销户，无法补办
 router.post("/corporateMakeup", (req, res) => {
+  if (!req.session.security_is_admin) {
+    res.status(403).end("非法访问");
+    return;
+  }
   makeupAccount.corporateMakeUpAccount(req, (statusCode, newSecurityID) => {
     if (statusCode == -1) {
       res.status(400).end("缺失法人注册id参数");
@@ -706,6 +754,10 @@ router.post("/corporateMakeup", (req, res) => {
 
 //个人销户
 router.post("/personCancelAccount", (req, res) => {
+  if (!req.session.security_is_admin) {
+    res.status(403).end("非法访问");
+    return;
+  }
   // TODO 检查股票是否清空
   if (!("identityid" in req.body) || !("securityid" in req.body)) {
     res.status(400).end("缺少字段");
@@ -724,8 +776,10 @@ router.post("/personCancelAccount", (req, res) => {
       res.status(200).end("销户成功");
     } else if (statusCode == -1) {
       res.status(503).end("信息不匹配");
-    } else if (statusCode == -2 || statusCode == -3) {
+    } else if (statusCode == -2) {
       res.status(503).end("服务器内部错误");
+    } else if (statusCode == -5) {
+      res.status(503).end("不存在对应的账户");
     } else if (statusCode == -4) {
       res.status(400).end("之前已经销户过了，请进行开户操作");
     }
@@ -734,6 +788,10 @@ router.post("/personCancelAccount", (req, res) => {
 
 //法人销户
 router.post("/corporateCancel", (req, res) => {
+  if (!req.session.security_is_admin) {
+    res.status(403).end("非法访问");
+    return;
+  }
   // TODO 检查股票是否清空
   if (!("corporateregisterid" in req.body) || !("securityid" in req.body)) {
     res.status(400).end("缺少字段");
@@ -754,13 +812,44 @@ router.post("/corporateCancel", (req, res) => {
     } else if (statusCode == -1) {
       res.status(503).end("提供的信息不匹配");
     }
-    else if (statusCode == -2 || statusCode == -3) {
+    else if (statusCode == -2) {
       res.status(503).end("服务器内部错误");
+    } else if (statusCode == -5) {
+      res.status(503).end("不存在对应的账户");
     } else if (statusCode == -4) {
       res.status(400).end("之前已经销户过了，请进行开户操作");
     }
   })
 });
 
-
+// 0 表示登陆成功
+// -1表示缺失参数
+// -2表示数据库错误
+// -3表示登陆账号或者密码错误
+router.post("/login", function (req, res) {
+  login.Login(req, (statusCode, result) => {
+    if (statusCode == -2) {
+      res.status(503).end("数据库连接错误");
+      return
+    }
+    else if (statusCode == -3) {
+      res.status(400).end("登陆账号或密码输入错误");
+      return;
+    } else if (statusCode == -1) {
+      res.status(400).end("请输入账户和密码！");
+      return;
+    }
+  })
+  login.Login(req, (statusCode, result) => {
+    // console.log(req.body)
+    req.session.securityid = req.body.securityid;
+    if (req.body.securityid === '000000000000000000') {
+      req.session.security_is_admin = true;
+    }
+    res.status(200).end(JSON.stringify({
+      "msg": "登陆成功！",
+      "is_admin": req.body.securityid === '000000000000000000'
+    }));
+  });
+})
 module.exports = router;

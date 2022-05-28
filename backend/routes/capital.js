@@ -273,7 +273,6 @@ const capitalLogin = {
 /* 登出 */
 const capitalLogout = {
     Logout: (req, callback) => {
-        console.log("log out!");
         callback(0, null);
     }
 }
@@ -734,6 +733,10 @@ const revertTrade = {
 
 /* 资金账户开户 */
 router.post('/OpenAccount', function (req, res) {
+    if (!req.session.capital_is_admin) {
+        res.status(403).end("非法访问");
+        return;
+    }
     //  0表示成功
     // -1表示缺失identity参数
     // -2表示数据库错误
@@ -765,6 +768,10 @@ router.post('/OpenAccount', function (req, res) {
 
 /* 资金账户挂失 */
 router.post("/LoseAccount", function (req, res) {
+    if (!req.session.capital_is_admin) {
+        res.status(403).end("非法访问");
+        return;
+    }
     if (!("capitalaccountid" in req.body)) {
         res.status(400).end("缺失capitalaccount参数");
         return;
@@ -796,6 +803,10 @@ router.post("/LoseAccount", function (req, res) {
 
 /* 资金账户补办 */
 router.post("/makeup", function (req, res) {
+    if (!req.session.capital_is_admin) {
+        res.status(403).end("非法访问");
+        return;
+    }
     // 0 表示补办成功
     // -1表示参数缺失
     // -2表示数据库错误
@@ -842,6 +853,10 @@ router.post("/makeup", function (req, res) {
 
 /* 资金账户销户 */
 router.post("/cancel", function (req, res) {
+    if (!req.session.capital_is_admin) {
+        res.status(403).end("非法访问");
+        return;
+    }
     // TODO 检查资金账户是否还有现金
     let sql = `select balance from capitalaccount where capitalaccountid = \'${req.body.capitalaccountid}\'`
     db(sql, [], (err, result) => {
@@ -889,19 +904,36 @@ router.post("/cancel", function (req, res) {
 // -3表示登陆账号或者密码错误
 router.post("/login", function (req, res) {
     capitalLogin.Login(req, (statusCode, result) => {
-        if (statusCode == -2)
+        if (statusCode == -2) {
             res.status(503).end("数据库连接错误");
-        else if (statusCode == -3)
+            return;
+        }
+        else if (statusCode == -3) {
             res.status(400).end("登陆账号或密码输入错误");
+            return;
+        } else if (statusCode == -1) {
+            res.status(400).end("请输入账户和密码！");
+            return;
+        }
     })
     capitalLogin.Login(req, (statusCode, result) => {
         //TODO
-        res.status(200).end("登陆成功！");
-
-    })
+        req.session.capitalaccountid = req.body.capitalaccountid;
+        if (req.body.capitalaccountid == '000000000000000000') {
+            req.session.capital_is_admin = true;
+        }
+        res.status(200).end(JSON.stringify({
+            "msg": "登陆成功！",
+            "is_admin": req.body.capitalaccountid == '000000000000000000'
+        }));
+    });
 })
 
 router.post("/changeCashpassword", function (req, res) {
+    if (!req.session.capital_is_admin) {
+        res.status(403).end("非法访问");
+        return;
+    }
     cashpasswordChange.changeCashPassword(req, (statusCode, result) => {
         if (statusCode == -2) {
             res.status(503).end("数据库连接错误");
@@ -910,6 +942,10 @@ router.post("/changeCashpassword", function (req, res) {
     })
 })
 router.post("/changeTradepassword", function (req, res) {
+    if (!req.session.capital_is_admin) {
+        res.status(403).end("非法访问");
+        return;
+    }
     tradepasswordChange.changeTradePassword(req, (statusCode, result) => {
         if (statusCode == -2) {
             res.status(503).end("数据库连接错误");
@@ -928,6 +964,10 @@ router.post("/changeTradepassword", function (req, res) {
  * -5：余额不足
  */
 router.post("/withdraw", (req, res) => {
+    if (!req.session.capitalaccountid) {
+        res.status(403).end("您还未登陆，请先登陆！");
+        return;
+    }
     if (!("capitalaccountid" in req.body)) {
         res.status(400).end("缺失capitalaccountid参数");
         return;
@@ -971,6 +1011,10 @@ router.post("/withdraw", (req, res) => {
  * -4：账户已被冻结
  */
 router.post("/deposit", (req, res) => {
+    if (!req.session.capitalaccountid) {
+        res.status(403).end("您还未登陆，请先登陆！");
+        return;
+    }
     if (!("capitalaccountid" in req.body)) {
         res.status(400).end("缺失capitalaccountid参数");
         return;
@@ -1011,6 +1055,10 @@ router.post("/deposit", (req, res) => {
  * -5：利息为0
  */
 router.post('/interestToBalance', function (req, res) {
+    if (!req.session.capitalaccountid) {
+        res.status(403).end("您还未登陆，请先登陆！");
+        return;
+    }
     if (!("capitalaccountid" in req.body)) {
         res.status(400).end("缺失capitalaccountid参数");
         return;
@@ -1239,6 +1287,10 @@ router.post('/revertTrade', function (req, res) {
     })
 })
 router.get('/getBalance', function (req, res) {
+    if (!req.session.capitalaccountid) {
+        res.status(403).end("您还未登陆，请先登陆！");
+        return;
+    }
     //console.log(req.body.capitalaccountid);
     let sql = `select * from capitalaccount where capitalaccountid = \'${req.query.capitalaccountid}\'`;
     console.log(sql);
@@ -1261,6 +1313,10 @@ router.get('/getBalance', function (req, res) {
 });
 
 router.get('/getInfo', function (req, res) {
+    if (!req.session.capitalaccountid) {
+        res.status(403).end("您还未登陆，请先登陆！");
+        return;
+    }
     let sql = `select * from transactions where capitalaccountid = \'${req.query.capitalaccountid}\'`;
     db(sql, [], function (err, result) {
         if (err) {
