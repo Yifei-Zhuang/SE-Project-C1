@@ -930,7 +930,7 @@ router.post("/login", function (req, res) {
 })
 
 router.post("/changeCashpassword", function (req, res) {
-    if (!req.session.capital_is_admin) {
+    if (!req.session.capitalaccountid) {
         res.status(403).end("非法访问");
         return;
     }
@@ -942,7 +942,7 @@ router.post("/changeCashpassword", function (req, res) {
     })
 })
 router.post("/changeTradepassword", function (req, res) {
-    if (!req.session.capital_is_admin) {
+    if (!req.session.capitalaccountid) {
         res.status(403).end("非法访问");
         return;
     }
@@ -1317,7 +1317,7 @@ router.get('/getInfo', function (req, res) {
         res.status(403).end("您还未登陆，请先登陆！");
         return;
     }
-    let sql = `select * from transactions where capitalaccountid = \'${req.query.capitalaccountid}\'`;
+    let sql = `select * from transactions where capitalaccountid = \'${req.session.capitalaccountid}\'`;
     db(sql, [], function (err, result) {
         if (err) {
             console.log("[Select Info error] - ", err.message);
