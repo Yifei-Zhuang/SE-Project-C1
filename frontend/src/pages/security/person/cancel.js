@@ -15,7 +15,7 @@ const cancel = () => {
         <dev>
             <Header type="s"/>
             <dev className="blocks">
-                <h1 className="title">证券账户销户<Button href="/security/person" shape="round" size="small">返回</Button> </h1>
+                <h1 className="title">证券账户销户</h1>
                 <dev className="func">
                     <Input addonBefore={selectBefore} />
                     <dev>
@@ -29,7 +29,7 @@ const cancel = () => {
                     <dev>
                         <p></p>
                     </dev>
-                    <Button>销户</Button>
+                    <Button>销户</Button> <Button href="/security/person">返回</Button> 
                 </dev>
             </dev>
         </dev>

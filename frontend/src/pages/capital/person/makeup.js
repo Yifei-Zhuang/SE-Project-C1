@@ -1,6 +1,11 @@
-import React from "react";
+import React, {useState} from "react";
 import {Header} from "../../../component";
-import { Input, Button, Select} from "antd";
+import { Input, Button, Modal, Select } from "antd";
+import {
+  BrowserRouter as Router,
+  Link
+} from "react-router-dom";
+import axios from "axios";
 const { Option } = Select;
 
 const selectBefore = (
@@ -11,27 +16,101 @@ const selectBefore = (
 );
 
 const makeup = () => {
+    const handleOk = () => {
+        setIsModalVisible(false);
+    };
+    const [TargetLink, setTargetLink] = useState("/");
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [ModalTitle, setModalTitle] = useState("");
+    const [ModalContent, setModalContent] = useState("");
+    const showModal = () => {
+    setIsModalVisible(true);
+    };
+    const [CapitalAccountId, setCapitalAccountId] = useState("");
+    const [IdentityId, setIdentityId] = useState("");
+    const [SecurityId, setSecurityId] = useState("");
+    const [TradePassword, setTradePassword] = useState("");
+    const [CashPassword, setCashPassword] = useState("");
+    const Submit = () => {
+    if(!sessionStorage.getItem('token'))
+    {
+        console.log("no token");
+        setModalTitle("补办失败");
+        setModalContent("请先登录！");
+        setTargetLink("/administrator");
+        showModal();
+    }
+    else
+    {
+        let Token = window.sessionStorage.getItem('token');
+        console.log(Token)
+        console.log("makeup now")
+        axios({
+        url: "http://47.99.194.140:3001/capital/makeup",
+        method: "POST",
+        data:{
+            "capitalaccountid":CapitalAccountId,
+            "identityid":IdentityId,
+            "securityId":SecurityId,
+            "tradepassword":TradePassword,
+            "cashpassword":CashPassword  
+        },
+        headers:{
+            'authorization':Token
+        }
+        }).then(res => {
+        console.log(res);
+        setModalTitle("补办成功");
+        setModalContent(res.data);
+        setTargetLink("/capital/person");
+        }).catch(function (error) {
+        setModalTitle("补办失败");
+        setModalContent(error.response.data);
+        setTargetLink("/capital/person/makeup");
+        })
+        showModal();
+    }
+    }
     return (
         <dev>
             <Header type="c"/>
             <dev className="blocks">
-                <h1 className="title">资金账户挂失并补办<Button href="/capital/person" shape="round" size="small">返回</Button> </h1>
+                <h1 className="title">资金账户补办</h1>
                 <dev className="func">
-                    <Input addonBefore={selectBefore} />
+                    <Input addonBefore={selectBefore} value={IdentityId} onChange={(e) => { setIdentityId(e.target.value) }}/>
                     <dev>
                         <p></p>
                     </dev>
-                    <Input addonBefore="证券账户卡号"/>
+                    <Input addonBefore="证券账户卡号" value={CapitalAccountId} onChange={(e) => { setCapitalAccountId(e.target.value) }}/>
                     <dev>
                         <p></p>
                     </dev>
-                    <Input.Password addonBefore="证券账户密码"/>
+                    <Input addonBefore="资金账户卡号" value={SecurityId} onChange={(e) => { setSecurityId(e.target.value) }}/>
                     <dev>
                         <p></p>
                     </dev>
-                    <Button>重新开户</Button>
+                    <Input.Password addonBefore="证券账户密码" value={TradePassword} onChange={(e) => { setTradePassword(e.target.value) }}/>
+                    <dev>
+                        <p></p>
+                    </dev>
+                    <Input.Password addonBefore="银行卡密码" value={CashPassword} onChange={(e) => { setCashPassword(e.target.value) }}/>
+                    <dev>
+                        <p></p>
+                    </dev>
+                    <Button onClick={Submit}>重新开户</Button> <Button><Link to="/capital/person">返回</Link></Button> 
                 </dev>
             </dev>
+            <Modal 
+                title={ModalTitle}
+                visible={isModalVisible} 
+                onOk={handleOk}
+                closable={false}
+                footer={[
+                <Button key = "ok" type="primary" onClick={handleOk} ><Link to={TargetLink}>OK</Link></Button>,
+                ]}
+            >
+                <p>{ModalContent}</p>
+            </Modal>
         </dev>
     )
 }

@@ -1,0 +1,4 @@
+global.parameter = {
+    isLoggedIn : false,
+};
+

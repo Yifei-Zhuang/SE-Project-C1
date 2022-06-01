@@ -8,7 +8,7 @@ const deposit = () => {
         <dev>
             <Header type="c"/>
             <dev className="blocks">
-                <h1 className="title">资金账户存款<Button href="/capital/person" shape="round" size="small">返回</Button> </h1>
+                <h1 className="title">资金账户存款</h1>
                 <dev className="func">
                     <dev>
                         <p></p>
@@ -25,7 +25,7 @@ const deposit = () => {
                     <dev>
                         <p></p>
                     </dev>
-                    <Button>存款</Button>
+                    <Button>存款</Button> <Button href="/security/person">返回</Button> 
                 </dev>
             </dev>
         </dev>

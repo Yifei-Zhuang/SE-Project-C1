@@ -1,16 +1,20 @@
 import React from "react";
-import {Input, Button} from 'antd';
+import {Input, Button, AutoComplete, Avatar, Image} from 'antd';
+import {Link} from 'react-router-dom'
+import { AiTwotoneCrown } from "react-icons/ai";
+
+
+import './config';
 
 export function Header(props) {
-    if(props.type == "c"){
+    if(global.parameter.isLoggedIn == false){
         return (
             <dev>
                 <ul className="header">
-                    <li className="header-item-left"><a className="header-link" href="/security/person">证券账户</a></li>
-                    <li className="header-item-left"><a className="header-link selected" href="/capital/person">资金账户</a></li>
-                    <li className="header-item-left"><a className="header-link" href="/about">关于</a></li>
-                    <li className="header-item-right"><a className="header-link" href="/administrator">管理员登录</a></li>
-                    <li className="header-item-right"><a className="header-link" href="/capitalusers">账户登录</a></li>
+                    <li className="header-item-left"><Link className="header-link" to="/security/person">证券账户</Link></li>
+                    <li className="header-item-left"><Link className="header-link selected" to="/capital/person">资金账户</Link></li>
+                    <li className="header-item-left"><Link className="header-link" to="/about">关于</Link></li>
+                    <li className="header-item-right"><Link className="header-link" to="/administrator">管理员登录</Link></li>
                 </ul>
                 <dev className="bgcolor"/>
             </dev>    
@@ -20,17 +24,26 @@ export function Header(props) {
         return (
             <dev>
                 <ul className="header">
-                    <li className="header-item-left"><a className="header-link selected" href="/security/person">证券账户</a></li>
-                    <li className="header-item-left"><a className="header-link" href="/capital/person">资金账户</a></li>
-                    <li className="header-item-left"><a className="header-link" href="/about">关于</a></li>
-                    <li className="header-item-right"><a className="header-link" href="/administrator">管理员登录</a></li>
-                    <li className="header-item-right"><a className="header-link" href="/securityusers">账户登录</a></li>
+                    <li className="header-item-left"><Link className="header-link" to="/security/person">证券账户</Link></li>
+                    <li className="header-item-left"><Link className="header-link selected" to="/capital/person">资金账户</Link></li>
+                    <li className="header-item-left"><Link className="header-link" to="/about">关于</Link></li>
+                    <li className="header-item-right">
+                    <Avatar
+                      style={{
+                        backgroundColor: '#87d068',
+                        width: 50,
+                        height: 50,
+                      }}
+                      icon={<AiTwotoneCrown />}
+                    /></li>
                 </ul>
                 <dev className="bgcolor"/>
             </dev>    
         );
     }
 }
+
+
 
 export function Login(props) {
     return ( 
@@ -43,14 +56,14 @@ export function Login(props) {
             <dev>
                 <p></p>
             </dev>
-            <Button>登录</Button>
+            <Button>登录</Button> <Button href="/">返回</Button>
         </dev>
     );
 }
 
 export function FuncButton(props) {
     return (
-        <Button href={props.bhref} icon={props.bicon} shape="round" size="large">{props.btext}</Button>
+        <Button icon={props.bicon} shape="round" size="large" className="btn" ><Link to={props.bhref}>{props.btext}</Link></Button>
     );
 }
  

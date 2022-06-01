@@ -15,7 +15,7 @@ const makeup = () => {
         <dev>
             <Header type="s"/>
             <dev className="blocks">
-                <h1 className="title">证券账户挂失并补办<Button href="/security/person" shape="round" size="small">返回</Button> </h1>
+                <h1 className="title">证券账户挂失并补办</h1>
                 <dev className="func">
                     <Input addonBefore={selectBefore} />
                     <dev>
@@ -29,7 +29,7 @@ const makeup = () => {
                     <dev>
                         <p></p>
                     </dev>
-                    <Button>重新开户</Button>
+                    <Button>重新开户</Button> <Button href="/security/person">返回</Button> 
                 </dev>
             </dev>
         </dev>

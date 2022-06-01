@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, {useState} from "react";
+import history from './history'
 import {
   BrowserRouter as Router,
   Routes,
@@ -27,11 +28,15 @@ import CorporateCapitalMakeup from "./pages/capital/person/makeup";
 import CorporateCapitalDeposit from "./pages/capital/person/deposit";
 import CorporateCapitalWithdraw from "./pages/capital/person/withdraw";
 import CorporateCapitalQuery from "./pages/capital/person/query";
+import CorporateCapitalChangePw from "./pages/capital/person/changepw";
 
-import { Header, Login } from "./component";
+
+import {Header, Login, FuncButton} from "./component";
 import axios from "axios";
-import { Button, Input } from "antd";
+import {Button, Menu, Input, Modal} from "antd";
+import { AiOutlineUser, AiTwotoneCrown, AiOutlinePlus, AiOutlineExclamation, AiOutlineKey, AiOutlineQuestion } from "react-icons/ai";
 
+import './config'
 
 export default function App() {
   return (
@@ -69,65 +74,173 @@ export default function App() {
           <Route path="/capital/person/deposit" element={<CorporateCapitalDeposit />} />
           <Route path="/capital/person/withdraw" element={<CorporateCapitalWithdraw />} />
           <Route path="/capital/person/query" element={<CorporateCapitalQuery />} />
+          <Route path="/capital/person/changepw" element={<CorporateCapitalChangePw />} />
 
         </Routes>
       </div>
     </Router>
   );
 }
+// --------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+// --------------------------------------------------------------------------------
 
 function Home() {
+  const onClick = (e) => {
+    console.log('click ', e);
+  };
   return (
-    <dev>
-      <Header type="c" />
-      <h2>Here is Home</h2>
-    </dev>
-  );
+      <dev>
+          
+          <Header type = "s" />
+          {/* <img src={require('../../../img/slides/4.png')} alt="" /> */}
+          {/* <center>
+            <Menu
+              onClick={onClick}
+              style={{
+                  width: 256,
+              }}
+              defaultSelectedKeys={['1']}
+              defaultOpenKeys={['sub1']}
+              mode="inline"
+              items={items}
+            />
+          </center> */}
+          <center>
+          <dev className="indexblocks">
+              <h1 className="title">证券交易系统</h1>
+              <dev className="selections">
+                  <dev>
+                      <p></p>
+                  </dev>
+                  <dev className="indexselection">
+                      <p><FuncButton bhref="/administrator" bicon={<AiTwotoneCrown/>} btext=" 管理员登录" /></p>
+                  </dev>
+                  <dev>
+                      <p></p>
+                  </dev>
+                  <dev className="indexselection">
+                      <p><FuncButton bhref="/capitalusers" bicon={<AiOutlineUser/>} btext=" 用户登录" /></p>
+                  </dev>
+              </dev>
+          </dev>
+          </center>
+      </dev>
+  )
 }
 
 function About() {
   return (
     <dev>
       <Header type="c" />
+      <center>
+          <dev className="indexblocks">
+              <h1 className="title">关于我们</h1>
+              <dev className="selections">
+                  <dev className="aboutsection">
+                      <p>证券与资金账户的管理平台</p>
+                      <p>证券账户业务：
+                        证券账户开户、挂失与重新开户、销户
+                      </p>
+                      <p>资金账户业务：
+                        资金账户开户、挂失与重新开户、资金账户与证券账户关联、销户、密码修改、存款、取款、挂失、资金信息查询。
+                      </p>
+                  </dev>
+                  <dev>
+                      <p></p>
+                  </dev>
+              </dev>
+          </dev>
+          <Button href="/">返回</Button>
+        </center>
     </dev>
   );
 }
 
 function Administrator() {
-  return (
-    <dev>
-      <Header type="c" />
-      <dev className="blocks">
-        <h1 className="title">管理员登录</h1>
-        <Login first="管理员账号" second="管理员密码" />
-      </dev>
-    </dev>
-  );
-}
-
-function CapitalUsers() {
-  const { capitalaccountid, setCapitalaccountid } = useState('');
-  const { password, setPassword } = useState('');
+  const handleOk = () => {
+    setIsModalVisible(false);
+  };
+  const [TargetLink, setTargetLink] = useState("/");
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [ModalTitle, setModalTitle] = useState("");
+  const [ModalContent, setModalContent] = useState("");
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
+  const [ capitalaccountid, setCapitalaccountid ] = useState('');
+  const [ password, setPassword ] = useState('');
   const Login = () => {
     console.log("Login now")
-    axios.post('http://47.99.194.140:3001/capital/login',
-      {
-        // withCredentials: true,
-        params: {
-          "capitalaccountid": toString(capitalaccountid),
-          "password": toString(password)
-        }
+    axios({
+      url: "http://47.99.194.140:3001/capital/login",
+      method: "POST",
+      data:{
+          "capitalaccountid": capitalaccountid,
+          "cashpassword": password
       }
-    )
+    }).then(res => {
+      window.sessionStorage.setItem('token',res.data.token);
+      console.log(res);
+      setModalTitle("登录成功");
+      setModalContent("点击跳转...");
+      global.parameter.isLoggedIn = true;
+      setTargetLink("/");
+    }).catch(function (error) {
+      window.sessionStorage.removeItem('token');
+      setModalTitle("登录失败");
+      setModalContent(error.response.data);
+      global.parameter.isLoggedIn = false;
+      setTargetLink("/administrator");
+    })
+    showModal();
   }
   return (
     <dev>
       <Header type="c" />
       <dev className="blocks">
+        <h1 className="title">管理员登录</h1>
+        <dev className="login">
+          <Input addonBefore={"账户名"} value={capitalaccountid} onChange={(e) => { setCapitalaccountid(e.target.value) }} />
+          <dev>
+            <p></p>
+          </dev>
+          <Input addonBefore={"密码"} value={password} onChange={(e) => { setPassword(e.target.value) }} />
+          <dev>
+            <p></p>
+          </dev>
+          <Button onClick={Login}>登陆</Button> <Button><Link to="/">返回</Link></Button>
+        </dev>
+      </dev>
+      <Modal 
+        title={ModalTitle}
+        visible={isModalVisible} 
+        onOk={handleOk}
+        closable={false}
+        footer={[
+          <Button key = "ok" type="primary" onClick={handleOk} ><Link to={TargetLink}>OK</Link></Button>,
+        ]}
+      >
+        <p>{ModalContent}</p>
+      </Modal>
+    </dev>
+  );
+}
+
+function CapitalUsers() {
+  return (
+    <dev>
+      <Header type="c" />
+      <dev className="blocks">
         <h1 className="title">资金账户登录</h1>
-        <Input addonBefore={"账户名"} value={capitalaccountid} onChange={(e) => { setCapitalaccountid(e.target.value) }} />
-        <Input addonBefore={"密码"} value={password} onChange={(e) => { setPassword(e.target.value) }} />
-        <Button onClick={Login}>登陆</Button>
+        <Login first="资金账号" second="交易密码" />
       </dev>
     </dev>
   );

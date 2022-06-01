@@ -7,7 +7,7 @@ const Loss = () => {
         <dev>
             <Header type="s"/>
             <dev className="blocks">
-                <h1 className="title">证券账户修改密码<Button href="/security/person" shape="round" size="small">返回</Button> </h1>
+                <h1 className="title">证券账户修改密码</h1>
                 <dev className="func">
                     <Input addonBefore="证券账户卡号"/>
                     <dev>
@@ -21,7 +21,7 @@ const Loss = () => {
                     <dev>
                         <p></p>
                     </dev>
-                    <Button>修改密码</Button>
+                    <Button>修改密码</Button> <Button href="/security/person">返回</Button> 
                 </dev>
             </dev>
         </dev>

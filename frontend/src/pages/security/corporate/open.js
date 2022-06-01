@@ -7,7 +7,7 @@ const open = () => {
         <dev>
             <Header type="s"/>
             <dev className="blocks">
-                <h1 className="title">证券账户法人开户<Button href="/security/person" shape="round" size="small">返回</Button> </h1>
+                <h1 className="title">证券账户法人开户</h1>
                 <dev className="func">
                     <Input addonBefore="法人注册登记号码"/>
                     <dev>
@@ -57,7 +57,7 @@ const open = () => {
                     <dev>
                         <p></p>
                     </dev>
-                    <Button>开户</Button>
+                    <Button>开户</Button> <Button href="/security/person">返回</Button> 
                 </dev>
             </dev>
         </dev>

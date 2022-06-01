@@ -8,7 +8,7 @@ const withdraw = () => {
         <dev>
             <Header type="c"/>
             <dev className="blocks">
-                <h1 className="title">资金账户取款<Button href="/capital/person" shape="round" size="small">返回</Button> </h1>
+                <h1 className="title">资金账户取款</h1>
                 <dev className="func">
                     <dev>
                         <p></p>
@@ -25,7 +25,7 @@ const withdraw = () => {
                     <dev>
                         <p></p>
                     </dev>
-                    <Button>取款</Button>
+                    <Button>取款</Button> <Button href="/capital/person">返回</Button> 
                 </dev>
             </dev>
         </dev>
