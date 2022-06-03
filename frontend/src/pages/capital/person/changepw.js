@@ -75,10 +75,10 @@ const Loss = () => {
                     <dev>
                         <p></p>
                     </dev>
-                    <Input.Password addonBefore="资金账户密码"/>
+                    {/* <Input.Password addonBefore="资金账户密码"/>
                     <dev>
                         <p></p>
-                    </dev>
+                    </dev> */}
                     <Input.Password addonBefore="新资金账户密码" value={NewPassword} onChange={(e) => { setNewPassword(e.target.value) }}/>
                     <dev>
                         <p></p>

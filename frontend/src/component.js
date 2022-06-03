@@ -11,7 +11,7 @@ export function Header(props) {
         return (
             <dev>
                 <ul className="header">
-                    <li className="header-item-left"><Link className="header-link" to="/security/person">证券账户</Link></li>
+                    <li className="header-item-left"><Link className="header-link" to="/security/indexpage">证券账户</Link></li>
                     <li className="header-item-left"><Link className="header-link selected" to="/capital/person">资金账户</Link></li>
                     <li className="header-item-left"><Link className="header-link" to="/about">关于</Link></li>
                     <li className="header-item-right"><Link className="header-link" to="/administrator">管理员登录</Link></li>
@@ -24,7 +24,7 @@ export function Header(props) {
         return (
             <dev>
                 <ul className="header">
-                    <li className="header-item-left"><Link className="header-link" to="/security/person">证券账户</Link></li>
+                    <li className="header-item-left"><Link className="header-link" to="/security/indexpage">证券账户</Link></li>
                     <li className="header-item-left"><Link className="header-link selected" to="/capital/person">资金账户</Link></li>
                     <li className="header-item-left"><Link className="header-link" to="/about">关于</Link></li>
                     <li className="header-item-right">

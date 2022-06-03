@@ -165,7 +165,7 @@ class EntryPage extends Component {
 
 
 
-const personPage = (props) => {
+const SecurityIndexPage = (props) => {
     const onClick = (e) => {
       console.log('click ', e);
     };
@@ -173,48 +173,28 @@ const personPage = (props) => {
         <dev>
             
             <Header type = "s" />
-            {/* <img src={require('../../../img/slides/4.png')} alt="" /> */}
-            {/* <center>
-              <Menu
-                onClick={onClick}
-                style={{
-                    width: 256,
-                }}
-                defaultSelectedKeys={['1']}
-                defaultOpenKeys={['sub1']}
-                mode="inline"
-                items={items}
-              />
-            </center> */}
             <center>
-            <dev className="blocks">
-                <h1 className="title">个人证券账户管理</h1>
-                <dev className="selections">
+            <dev className="aboutblocks">
+                <h1 className="title">证券账户管理</h1>
+                <dev className="indexselections">
                     <dev>
                         <p></p>
                     </dev>
-                    <dev className="selection">
-                        <p><FuncButton bhref="/security/person/open" bicon={<AiOutlinePlus/>} btext="个人开户" /></p>
-                        {/* 个人开设证券账户 */}
+                    <dev className="indexselection">
+                        <p><FuncButton bhref="/security/corporate" bicon={<AiOutlinePlus/>} btext="法人证券账户管理" /></p>
+                        {/* 法人开设证券账户 */}
                     </dev>
                     <dev>
                         <p></p>
                     </dev>
-                    <dev className="selection">
-                        <p><FuncButton bhref="/security/person/makeup" bicon={<AiOutlineQuestion/>} btext="挂失补办" /></p>
+                    <dev className="indexselection">
+                        <p><FuncButton bhref="/security/person" bicon={<AiOutlineQuestion/>} btext="个人证券账户管理" /></p>
                         {/* 挂失并补办证券账户 */}
                     </dev>
                     <dev>
                         <p></p>
                     </dev>
-                    <dev className="selection">
-                    <p><FuncButton bhref="/security/person/cancel" bicon={<AiOutlineExclamation/>} btext="账户销户" /></p>
-                        {/* 证券账户销户 */}
-                    </dev>
-                    <dev>
-                        <p></p>
-                    </dev>
-                    <dev className="selection">
+                    <dev className="indexselection">
                         <p><Button shape="round" size="large"><Link className="btn" to="/">返回</Link></Button></p>
                     </dev>
                 </dev>
@@ -223,4 +203,4 @@ const personPage = (props) => {
         </dev>
     )
 }
- export default personPage;
+ export default SecurityIndexPage;

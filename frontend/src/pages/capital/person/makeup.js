@@ -31,6 +31,8 @@ const makeup = () => {
     const [SecurityId, setSecurityId] = useState("");
     const [TradePassword, setTradePassword] = useState("");
     const [CashPassword, setCashPassword] = useState("");
+    const [CardNum, setCardNum] = useState("");
+    const [Bank, setBank] = useState("");
     const Submit = () => {
     if(!sessionStorage.getItem('token'))
     {
@@ -40,6 +42,27 @@ const makeup = () => {
         setTargetLink("/administrator");
         showModal();
     }
+    else if(IdentityId == "")
+      {
+        setModalTitle("补办失败");
+        setModalContent("请输入有效的身份证号！");
+        setTargetLink("/capital/person/makeup");
+        showModal();
+      }
+      else if(CardNum == "")
+      {
+        setModalTitle("补办失败");
+        setModalContent("请输入银行卡号！");
+        setTargetLink("/capital/person/makeup");
+        showModal();
+      }
+      else if(Bank == "")
+      {
+        setModalTitle("补办失败");
+        setModalContent("请输入开户行信息！");
+        setTargetLink("/capital/person/makeup");
+        showModal();
+      }
     else
     {
         let Token = window.sessionStorage.getItem('token');
@@ -77,19 +100,27 @@ const makeup = () => {
             <dev className="blocks">
                 <h1 className="title">资金账户补办</h1>
                 <dev className="func">
-                    <Input addonBefore={selectBefore} value={IdentityId} onChange={(e) => { setIdentityId(e.target.value) }}/>
+                    <Input addonBefore="资金账户号码" value={CapitalAccountId} onChange={(e) => { setCapitalAccountId(e.target.value) }}/>
                     <dev>
                         <p></p>
                     </dev>
-                    <Input addonBefore="证券账户卡号" value={CapitalAccountId} onChange={(e) => { setCapitalAccountId(e.target.value) }}/>
+                    <Input addonBefore="本人身份证" value={IdentityId} onChange={(e) => { setIdentityId(e.target.value) }}/>
                     <dev>
                         <p></p>
                     </dev>
-                    <Input addonBefore="资金账户卡号" value={SecurityId} onChange={(e) => { setSecurityId(e.target.value) }}/>
+                    <Input addonBefore="证券账户卡" value={SecurityId} onChange={(e) => { setSecurityId(e.target.value) }}/>
                     <dev>
                         <p></p>
                     </dev>
                     <Input.Password addonBefore="证券账户密码" value={TradePassword} onChange={(e) => { setTradePassword(e.target.value) }}/>
+                    <dev>
+                        <p></p>
+                    </dev>
+                    <Input addonBefore="银行卡号" value={CardNum} onChange={(e) => { setCardNum(e.target.value) }}/>
+                    <dev>
+                        <p></p>
+                    </dev>
+                    <Input addonBefore="开户行" value={Bank} onChange={(e) => { setBank(e.target.value) }}/>
                     <dev>
                         <p></p>
                     </dev>

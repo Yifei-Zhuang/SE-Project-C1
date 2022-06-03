@@ -22,6 +22,8 @@ const open = () => {
     const [SecurityId, setSecurityId] = useState("");
     const [TradePassword, setTradePassword] = useState("");
     const [CashPassword, setCashPassword] = useState("");
+    const [CardNum, setCardNum] = useState("");
+    const [Bank, setBank] = useState("");
     const Submit = () => {
       if(!sessionStorage.getItem('token'))
       {
@@ -29,6 +31,27 @@ const open = () => {
         setModalTitle("开户失败");
         setModalContent("请先登录！");
         setTargetLink("/administrator");
+        showModal();
+      }
+      else if(IdentityId == "")
+      {
+        setModalTitle("开户失败");
+        setModalContent("请输入有效的身份证号！");
+        setTargetLink("/capital/person/open");
+        showModal();
+      }
+      else if(CardNum == "")
+      {
+        setModalTitle("开户失败");
+        setModalContent("请输入银行卡号！");
+        setTargetLink("/capital/person/open");
+        showModal();
+      }
+      else if(Bank == "")
+      {
+        setModalTitle("开户失败");
+        setModalContent("请输入开户行信息！");
+        setTargetLink("/capital/person/open");
         showModal();
       }
       else
@@ -79,11 +102,11 @@ const open = () => {
                     <dev>
                         <p></p>
                     </dev>
-                    <Input addonBefore="银行卡号"/>
+                    <Input addonBefore="银行卡号" value={CardNum} onChange={(e) => { setCardNum(e.target.value) }}/>
                     <dev>
                         <p></p>
                     </dev>
-                    <Input addonBefore="开户行"/>
+                    <Input addonBefore="开户行" value={Bank} onChange={(e) => { setBank(e.target.value) }}/>
                     <dev>
                         <p></p>
                     </dev>

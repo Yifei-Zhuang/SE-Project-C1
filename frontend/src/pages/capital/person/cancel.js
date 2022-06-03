@@ -51,7 +51,7 @@ const cancel = () => {
         }).then(res => {
         console.log(res);
         setModalTitle("销户成功");
-        setModalContent(res.data);
+        setModalContent("返回");
         setTargetLink("/capital/person");
         }).catch(function (error) {
         setModalTitle("销户失败");

@@ -1,24 +1,31 @@
-//证券账户开户 已完成
+//证券账户挂失后重新开户 已完成 但未测试
 import React, {useState} from "react";
 import {Header} from "../../../component";
-import { Input, Button, Modal } from "antd";
+import { Input, Button, Modal, Select } from "antd";
 import {
   BrowserRouter as Router,
   Link
 } from "react-router-dom";
 import axios from "axios";
+const { Option } = Select;
 
-//---------------------------------------------------------------
-const open = () => {
+const selectBefore = (
+    <Select defaultValue="本人身份证">
+        <Option>本人身份证: </Option>
+        <Option>法人注册登记号: </Option>
+    </Select>
+);
+
+const makeup = () => {
     const handleOk = () => {
-      setIsModalVisible(false);
-    };
+        setIsModalVisible(false);
+      };
     const [TargetLink, setTargetLink] = useState("/");
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [ModalTitle, setModalTitle] = useState("");
     const [ModalContent, setModalContent] = useState("");
     const showModal = () => {
-      setIsModalVisible(true);
+    setIsModalVisible(true);
     };
     const [IdentityId, setIdentityId] = useState("");
     const [Name, setName] = useState("");
@@ -28,82 +35,81 @@ const open = () => {
     const [Education, setEducation] = useState("");
     const [WorkAddress, setWorkAddress] = useState("");
     const [Phone, setPhone] = useState("");
-
-
+  
     const Submit = () => {
-      if(!sessionStorage.getItem('token'))
-      {
+    if(!sessionStorage.getItem('token'))
+    {
         console.log("no token");
-        setModalTitle("开户失败");
+        setModalTitle("补办失败");
         setModalContent("请先登录！");
         setTargetLink("/administrator");
         showModal();
-      }
-      else if(IdentityId == "")
+    }
+    else if(IdentityId == "")
       {
-        setModalTitle("开户失败");
+        setModalTitle("补办失败");
         setModalContent("请输入有效的身份证号！");
-        setTargetLink("/security/person/open");
+        setTargetLink("/security/person/reopen");
         showModal();
       }
       else if(Name == "")
       {
-        setModalTitle("开户失败");
+        setModalTitle("补办失败");
         setModalContent("请输入姓名！");
-        setTargetLink("/security/person/open");
+        setTargetLink("/security/person/reopen");
         showModal();
       }
       else if(Gender == "")
       {
-        setModalTitle("开户失败");
+        setModalTitle("补办失败");
         setModalContent("请输入性别！");
-        setTargetLink("/security/person/open");
+        setTargetLink("/security/person/reopen");
         showModal();
       }
       else if(HomeAddress == "")
       {
-        setModalTitle("开户失败");
+        setModalTitle("补办失败");
         setModalContent("请输入家庭住址！");
-        setTargetLink("/security/person/open");
+        setTargetLink("/security/person/reopen");
         showModal();
       }
       else if(Work == "")
       {
-        setModalTitle("开户失败");
+        setModalTitle("补办失败");
         setModalContent("请输入职业！");
-        setTargetLink("/security/person/open");
+        setTargetLink("/security/person/reopen");
         showModal();
       }
       else if(Education == "")
       {
-        setModalTitle("开户失败");
+        setModalTitle("补办失败");
         setModalContent("请输入学历！");
-        setTargetLink("/security/person/open");
+        setTargetLink("/security/person/reopen");
         showModal();
       }
       else if(WorkAddress == "")
       {
-        setModalTitle("开户失败");
+        setModalTitle("补办失败");
         setModalContent("请输入工作单位！");
-        setTargetLink("/security/person/open");
+        setTargetLink("/security/person/reopen");
         showModal();
       }
       else if(Phone == "")
       {
-        setModalTitle("开户失败");
+        setModalTitle("补办失败");
         setModalContent("请输入联系电话！");
-        setTargetLink("/security/person/open");
+        setTargetLink("/security/person/reopen");
         showModal();
       }
-      else
-      {
+    else
+    {
         let Token = window.sessionStorage.getItem('token');
         console.log(Token)
-        console.log("open now")
+        console.log("makeup now")
         axios({
-          url: "http://47.99.194.140:3001/security/personalOpen",
-          method: "POST",
-          data:{
+        url: "http://47.99.194.140:3001/security/personmakeup",
+        method: "POST",
+        data:{
             "identityid":IdentityId,
             "name":Name,
             "gender":Gender,
@@ -112,28 +118,28 @@ const open = () => {
             "education":Education,
             "workaddress":WorkAddress,
             "phone":Phone
-          },
-          headers:{
+        },
+        headers:{
             'authorization':Token
-          }
+        }
         }).then(res => {
-          console.log(res);
-          setModalTitle("开户成功");
-          setModalContent(res.data);
-          setTargetLink("/security/person");
+        console.log(res);
+        setModalTitle("补办成功");
+        setModalContent(res.data);
+        setTargetLink("/security/person");
         }).catch(function (error) {
-          setModalTitle("开户失败");
-          setModalContent(error.response.data);
-          setTargetLink("/security/person/open");
+        setModalTitle("补办失败");
+        setModalContent(error.response.data);
+        setTargetLink("/security/person/reopen");
         })
         showModal();
-      }
+    }
     }
     return (
         <dev>
             <Header type="s"/>
             <dev className="blocks">
-                <h1 className="title">证券账户个人开户</h1>
+                <h1 className="title">证券账户重新开户</h1>
                 <dev className="func">
                     <Input addonBefore="姓名" value={Name} onChange={(e) => { setName(e.target.value) }}/>
                     <dev>
@@ -167,68 +173,21 @@ const open = () => {
                     <dev>
                         <p></p>
                     </dev>
-                    <Button onClick={Submit}>开户</Button>  <Button href="/security/person">返回</Button> 
+                    <Button onClick={Submit}>重新开户</Button>  <Button href="/security/person">返回</Button> 
                 </dev>
             </dev>
             <Modal 
-              title={ModalTitle}
-              visible={isModalVisible} 
-              onOk={handleOk}
-              closable={false}
-              footer={[
-              <Button key = "ok" type="primary" onClick={handleOk} ><Link to={TargetLink}>OK</Link></Button>,
-              ]}
-          >
-              <p>{ModalContent}</p>
-        </Modal>
+                title={ModalTitle}
+                visible={isModalVisible} 
+                onOk={handleOk}
+                closable={false}
+                footer={[
+                <Button key = "ok" type="primary" onClick={handleOk} ><Link to={TargetLink}>OK</Link></Button>,
+                ]}
+            >
+                <p>{ModalContent}</p>
+            </Modal>
         </dev>
     )
 }
-export default open;
-
-//---------------------------------------------------------------
-// const open = () => {
-//     return (
-//         <dev>
-//             <Header type="s"/>
-//             <dev className="blocks">
-//                 <h1 className="title">证券账户个人开户</h1>
-//                 <dev className="func">
-//                     <Input addonBefore="姓名"/>
-//                     <dev>
-//                         <p></p>
-//                     </dev>
-//                     <Input addonBefore="性别"/>
-//                     <dev>
-//                         <p></p>
-//                     </dev>
-//                     <Input addonBefore="身份证号"/>
-//                     <dev>
-//                         <p></p>
-//                     </dev>
-//                     <Input addonBefore="家庭地址"/>
-//                     <dev>
-//                         <p></p>
-//                     </dev>
-//                     <Input addonBefore="职业"/>
-//                     <dev>
-//                         <p></p>
-//                     </dev>
-//                     <Input addonBefore="学历"/>
-//                     <dev>
-//                         <p></p>
-//                     </dev>
-//                     <Input addonBefore="工作单位"/>
-//                     <dev>
-//                         <p></p>
-//                     </dev>
-//                     <Input addonBefore="联系电话"/>
-//                     <dev>
-//                         <p></p>
-//                     </dev>
-//                     <Button>开户</Button>  <Button href="/security/person">返回</Button> 
-//                 </dev>
-//             </dev>
-//         </dev>
-//     )
-// }
+export default makeup;

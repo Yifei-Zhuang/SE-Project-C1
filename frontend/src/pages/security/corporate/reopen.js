@@ -1,25 +1,31 @@
-//法人证券账户开户 已完成
-
+//法人证券账户挂失后重新开户 已完成 但未测试
 import React, {useState} from "react";
 import {Header} from "../../../component";
-import { Input, Button, Modal, DatePicker } from "antd";
+import { Input, Button, Modal, DatePicker, Select } from "antd";
 import {
   BrowserRouter as Router,
   Link
 } from "react-router-dom";
 import axios from "axios";
+const { Option } = Select;
 
-//---------------------------------------------------------------
-const open = () => {
+const selectBefore = (
+    <Select defaultValue="本人身份证">
+        <Option>本人身份证: </Option>
+        <Option>法人注册登记号: </Option>
+    </Select>
+);
+
+const makeup = () => {
     const handleOk = () => {
-      setIsModalVisible(false);
-    };
+        setIsModalVisible(false);
+      };
     const [TargetLink, setTargetLink] = useState("/");
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [ModalTitle, setModalTitle] = useState("");
     const [ModalContent, setModalContent] = useState("");
     const showModal = () => {
-      setIsModalVisible(true);
+    setIsModalVisible(true);
     };
     const [CorporaterRegisterId, setCorporaterRegisterId] = useState("");
     const [LicenseId, setLicenseId] = useState("");
@@ -32,95 +38,95 @@ const open = () => {
     const [AuthorizerIdentityId, setAuthorizerIdentityId] = useState("");
     const [AuthorizerAddress, setAuthorizerAddress] = useState("");
 
-
+  
     const Submit = () => {
-      if(!sessionStorage.getItem('token'))
-      {
+    if(!sessionStorage.getItem('token'))
+    {
         console.log("no token");
-        setModalTitle("开户失败");
+        setModalTitle("补办失败");
         setModalContent("请先登录！");
         setTargetLink("/administrator");
         showModal();
-      }
-      else if(CorporaterRegisterId == "")
+    }
+    else if(CorporaterRegisterId == "")
       {
-        setModalTitle("开户失败");
+        setModalTitle("补办失败");
         setModalContent("请输入法人注册登记号码！");
-        setTargetLink("/security/corporate/open");
+        setTargetLink("/security/corporate/reopen");
         showModal();
       }
       else if(LicenseId == "")
       {
-        setModalTitle("开户失败");
+        setModalTitle("补办失败");
         setModalContent("请输入营业执照号码！");
-        setTargetLink("/security/corporate/open");
+        setTargetLink("/security/corporate/reopen");
         showModal();
       }
       else if(CorporateIdentityId == "")
       {
-        setModalTitle("开户失败");
+        setModalTitle("补办失败");
         setModalContent("请输入有效的法人身份证号！");
-        setTargetLink("/security/corporate/open");
+        setTargetLink("/security/corporate/reopen");
         showModal();
       }
       else if(CorporateName == "")
       {
-        setModalTitle("开户失败");
+        setModalTitle("补办失败");
         setModalContent("请输入正确的法人姓名！");
-        setTargetLink("/security/corporate/open");
+        setTargetLink("/security/corporate/reopen");
         showModal();
       }
       else if(CorporatePhone == "")
       {
-        setModalTitle("开户失败");
+        setModalTitle("补办失败");
         setModalContent("请输入联系电话！");
-        setTargetLink("/security/corporate/open");
+        setTargetLink("/security/corporate/reopen");
         showModal();
       }
       else if(CorporateAddress == "")
       {
-        setModalTitle("开户失败");
+        setModalTitle("补办失败");
         setModalContent("请输入家庭地址！");
-        setTargetLink("/security/corporate/open");
+        setTargetLink("/security/corporate/reopen");
         showModal();
       }
       else if(AuthorizeName == "")
       {
-        setModalTitle("开户失败");
+        setModalTitle("补办失败");
         setModalContent("请输入法人授权证券交易执行人姓名！");
-        setTargetLink("/security/corporate/open");
+        setTargetLink("/security/corporate/reopen");
         showModal();
       }
       else if(AuthorizerIdentityId == "")
       {
-        setModalTitle("开户失败");
+        setModalTitle("补办失败");
         setModalContent("请输入法人授权证券交易执行人身份证号！");
-        setTargetLink("/security/corporate/open");
+        setTargetLink("/security/corporate/reopen");
         showModal();
       }
       else if(AuthorizerPhone == "")
       {
-        setModalTitle("开户失败");
+        setModalTitle("补办失败");
         setModalContent("请输入法人授权证券交易执行人联系电话！");
-        setTargetLink("/security/corporate/open");
+        setTargetLink("/security/corporate/reopen");
         showModal();
       }
       else if(AuthorizerAddress == "")
       {
-        setModalTitle("开户失败");
+        setModalTitle("补办失败");
         setModalContent("请输入法人授权证券交易执行人家庭住址！");
-        setTargetLink("/security/corporate/open");
+        setTargetLink("/security/corporate/reopen");
         showModal();
       }
-      else
-      {
+    else
+    {
         let Token = window.sessionStorage.getItem('token');
         console.log(Token)
-        console.log("open now")
+        console.log("makeup now")
         axios({
-          url: "http://47.99.194.140:3001/security/corporateOpen",
-          method: "POST",
-          data:{
+        url: "http://47.99.194.140:3001/security/corporateMakeup",
+        method: "POST",
+        data:{
             "corporateregisterid": CorporaterRegisterId,
             "licenseid": LicenseId,
             "corporateidentityid": CorporateIdentityId,
@@ -131,22 +137,22 @@ const open = () => {
             "authorizeridentityid":AuthorizerIdentityId,
             "authorizerphone":AuthorizerPhone,
             "authorizeraddress":AuthorizerAddress
-          },
-          headers:{
+        },
+        headers:{
             'authorization':Token
-          }
+        }
         }).then(res => {
-          console.log(res);
-          setModalTitle("开户成功");
-          setModalContent(res.data);
-          setTargetLink("/security/corporate");
+        console.log(res);
+        setModalTitle("补办成功");
+        setModalContent(res.data);
+        setTargetLink("/security/corporate");
         }).catch(function (error) {
-          setModalTitle("开户失败");
-          setModalContent(error.response.data);
-          setTargetLink("/security/corporate/open");
+        setModalTitle("补办失败");
+        setModalContent(error.response.data);
+        setTargetLink("/security/corporate/reopen");
         })
         showModal();
-      }
+    }
     }
     return (
         <dev>
@@ -202,17 +208,17 @@ const open = () => {
                 </dev>
             </dev>
             <Modal 
-              title={ModalTitle}
-              visible={isModalVisible} 
-              onOk={handleOk}
-              closable={false}
-              footer={[
-              <Button key = "ok" type="primary" onClick={handleOk} ><Link to={TargetLink}>OK</Link></Button>,
-              ]}
-          >
-              <p>{ModalContent}</p>
-        </Modal>
+                title={ModalTitle}
+                visible={isModalVisible} 
+                onOk={handleOk}
+                closable={false}
+                footer={[
+                <Button key = "ok" type="primary" onClick={handleOk} ><Link to={TargetLink}>OK</Link></Button>,
+                ]}
+            >
+                <p>{ModalContent}</p>
+            </Modal>
         </dev>
     )
 }
-export default open;
+export default makeup;

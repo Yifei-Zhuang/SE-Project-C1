@@ -1,4 +1,3 @@
-
 import React, {useState} from "react";
 import {Header} from "../../../component";
 import { Input, Button, Modal, Select } from "antd";
@@ -37,6 +36,13 @@ const Loss = () => {
         setTargetLink("/administrator");
         showModal();
     }
+    else if(CapitalAccountId == "")
+      {
+        setModalTitle("挂失失败");
+        setModalContent("请输入资金账户卡号！");
+        setTargetLink("/capital/person/loss");
+        showModal();
+      }
     else
     {
         let Token = window.sessionStorage.getItem('token');
@@ -71,10 +77,6 @@ const Loss = () => {
                 <h1 className="title">资金账户挂失</h1>
                 <dev className="func">
                     <Input addonBefore="资金账户卡号" value={CapitalAccountId} onChange={(e) => { setCapitalAccountId(e.target.value) }}/>
-                    <dev>
-                        <p></p>
-                    </dev>
-                    <Input.Password addonBefore="资金账户密码"/>
                     <dev>
                         <p></p>
                     </dev>

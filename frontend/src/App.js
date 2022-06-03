@@ -11,14 +11,18 @@ import PersonSecurityPage from "./pages/security/person/index";
 import CorporateCapital from "./pages/capital/corporate/index";
 import PersonCapital from "./pages/capital/person/index";
 
+import SecurityIndexPage from "./pages/security/indexpage";
+
 import CorporateSecurityOpen from "./pages/security/corporate/open";
 import CorporateSecurityMakeup from "./pages/security/corporate/makeup";
-import CorporateSecurityLoss from "./pages/security/corporate/loss";
+// import CorporateSecurityLoss from "./pages/security/corporate/loss";
+import CorporateSecurityReopen from "./pages/security/corporate/reopen";
 import CorporateSecurityCancel from "./pages/security/corporate/cancel";
 
 import PersonSecurityOpen from "./pages/security/person/open";
 import PersonSecurityMakeup from "./pages/security/person/makeup";
-import PersonSecurityLoss from "./pages/security/person/loss";
+import PersonSecurityReopen from "./pages/security/person/reopen";
+// import PersonSecurityLoss from "./pages/security/person/loss";
 import PersonSecurityCancel from "./pages/security/person/cancel";
 
 import PersonCapitalOpen from "./pages/capital/person/open";
@@ -34,7 +38,7 @@ import CorporateCapitalChangePw from "./pages/capital/person/changepw";
 import {Header, Login, FuncButton} from "./component";
 import axios from "axios";
 import {Button, Menu, Input, Modal} from "antd";
-import { AiOutlineUser, AiTwotoneCrown, AiOutlinePlus, AiOutlineExclamation, AiOutlineKey, AiOutlineQuestion } from "react-icons/ai";
+import { AiOutlineUser, AiTwotoneCrown, AiOutlinePlus, AiOutlineExclamation, AiOutlineKey, AiOutlineQuestion, AiFillRedEnvelope, AiFillPropertySafety } from "react-icons/ai";
 
 import './config'
 
@@ -51,17 +55,21 @@ export default function App() {
           <Route path="/capitalusers" element={<CapitalUsers />} />
           <Route path="/securityusers" element={<SecurityUsers />} />
 
+          <Route path="/security/indexpage" element={<SecurityIndexPage />} />
+
           <Route path="/security/corporate" element={<CorporateSecurityPage />} />
           <Route path="/security/corporate/open" element={<CorporateSecurityOpen />} />
-          <Route path="/security/corporate/loss" element={<CorporateSecurityLoss />} />
+          {/* <Route path="/security/corporate/loss" element={<CorporateSecurityLoss />} /> */}
           <Route path="/security/corporate/cancel" element={<CorporateSecurityCancel />} />
+          <Route path="/security/corporate/reopen" element={<CorporateSecurityReopen />} />
           <Route path="/security/corporate/makeup" element={<CorporateSecurityMakeup />} />
 
 
           <Route path="/security/person" element={<PersonSecurityPage />} />
           <Route path="/security/person/open" element={<PersonSecurityOpen />} />
-          <Route path="/security/person/loss" element={<PersonSecurityLoss />} />
+          {/* <Route path="/security/person/loss" element={<PersonSecurityLoss />} /> */}
           <Route path="/security/person/cancel" element={<PersonSecurityCancel />} />
+          <Route path="/security/person/reopen" element={<PersonSecurityReopen />} />
           <Route path="/security/person/makeup" element={<PersonSecurityMakeup />} />
 
           <Route path="/capital/corporate" element={<CorporateCapital />} />
@@ -100,19 +108,6 @@ function Home() {
       <dev>
           
           <Header type = "s" />
-          {/* <img src={require('../../../img/slides/4.png')} alt="" /> */}
-          {/* <center>
-            <Menu
-              onClick={onClick}
-              style={{
-                  width: 256,
-              }}
-              defaultSelectedKeys={['1']}
-              defaultOpenKeys={['sub1']}
-              mode="inline"
-              items={items}
-            />
-          </center> */}
           <center>
           <dev className="indexblocks">
               <h1 className="title">证券交易系统</h1>
@@ -120,14 +115,16 @@ function Home() {
                   <dev>
                       <p></p>
                   </dev>
-                  <dev className="indexselection">
-                      <p><FuncButton bhref="/administrator" bicon={<AiTwotoneCrown/>} btext=" 管理员登录" /></p>
+                  <dev className="aboutselection">
+                      <p><FuncButton bhref="/security/indexpage" bicon={<AiFillRedEnvelope/>} btext="证券账户" /></p>
                   </dev>
                   <dev>
                       <p></p>
+                  </dev><dev className="aboutselection">
+                      <p><FuncButton bhref="/capital/person" bicon={<AiFillPropertySafety/>} btext="资金账户" /></p>
                   </dev>
-                  <dev className="indexselection">
-                      <p><FuncButton bhref="/capitalusers" bicon={<AiOutlineUser/>} btext=" 用户登录" /></p>
+                  <dev>
+                      <p></p>
                   </dev>
               </dev>
           </dev>
@@ -141,7 +138,7 @@ function About() {
     <dev>
       <Header type="c" />
       <center>
-          <dev className="indexblocks">
+          <dev className="aboutblocks">
               <h1 className="title">关于我们</h1>
               <dev className="selections">
                   <dev className="aboutsection">
@@ -216,7 +213,7 @@ function Administrator() {
           <dev>
             <p></p>
           </dev>
-          <Button onClick={Login}>登陆</Button> <Button><Link to="/">返回</Link></Button>
+          <Button onClick={Login}>登录</Button> <Button><Link to="/">返回</Link></Button>
         </dev>
       </dev>
       <Modal 
